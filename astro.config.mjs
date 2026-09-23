@@ -28,7 +28,8 @@ export default defineConfig({
   // <Image>, which overrode the explicit height classes on the header logo.
   // Each image sets its own widths/sizes instead.
   integrations: [
-    sitemap({
+    // A review deploy publishes no sitemap — see src/pages/robots.txt.ts
+    ...(PREVIEW_SITE || PREVIEW_BASE ? [] : [sitemap({
       i18n: { defaultLocale: 'en', locales: { en: 'en-CY', el: 'el-CY' } },
       filter: (page) => !page.includes('/thanks/') && !page.includes('/404'),
       changefreq: 'monthly',
@@ -39,7 +40,7 @@ export default defineConfig({
         if (item.url.includes('/services/')) item.priority = 0.8;
         return item;
       },
-    }),
+    })]),
   ],
   vite: { plugins: [tailwindcss()] },
 });

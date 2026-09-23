@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-
-# System pages carry noindex; keeping them out of crawl budget too.
-Disallow: /thanks/
-Disallow: /el/efcharistoume/
-
-Sitemap: https://www.pianotuningscy.com/sitemap-index.xml
