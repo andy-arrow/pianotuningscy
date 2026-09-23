@@ -34,10 +34,13 @@ export const site = {
   /** Approximate centre of Limassol — geo markup for a service-area business. */
   geo: { lat: 34.7071, lng: 33.0226 },
 
-  /** NEEDS-CONFIRMATION with the owner. Sensible default for a one-technician business. */
+  /**
+   * Confirmed by Kleanthis (Sept 2026): weekdays 09:00–17:00, weekends off.
+   * This is the single source of truth — the footer and contact page derive
+   * their visible hours from it, so the page and the schema cannot diverge.
+   */
   hours: [
-    { days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '08:00', closes: '19:00' },
-    { days: ['Saturday'], opens: '09:00', closes: '15:00' },
+    { days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '17:00' },
   ],
 
   social: {

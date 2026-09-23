@@ -17,13 +17,13 @@ npm run check    # type + template diagnostics
 
 ## Before it goes live
 
-Four things need a decision or a real value. Everything else works as-is.
+Three things still need a decision or a real value. Everything else works as-is.
 
 | # | What | Where |
 |---|---|---|
 | 1 | **Form delivery.** On Netlify it works untouched (Netlify Forms picks up `data-netlify`). Anywhere else, set an endpoint (Formspree, Web3Forms, your own API). | `src/data/site.ts` → `forms.endpoint` |
 | 2 | **Analytics.** Plausible is wired and cookieless, so no consent banner is needed — but the account must exist. Clear the field to ship with no tracking at all. Only add GA4 if you accept needing a consent banner. | `src/data/site.ts` → `analytics` |
-| 3 | **Opening hours.** Currently Mon–Fri 08:00–19:00, Sat 09:00–15:00 as a placeholder. Confirm with Kleanthis — these are published in `LocalBusiness` schema and Google will show them. | `src/data/site.ts` → `hours` |
+| ~~3~~ | ~~**Opening hours.**~~ ✅ Confirmed Sept 2026: Mon–Fri 09:00–17:00, weekends closed. The footer and contact page now derive their visible hours from `site.hours`, so the page and the schema cannot drift apart. | `src/data/site.ts` → `hours` |
 | 4 | **Legal review.** Privacy, cookie and terms pages are written honestly against what the site actually does, but a Cypriot lawyer should sign them off. | `src/data/legal.ts` |
 
 **Base city: Limassol** (confirmed by Kleanthis, Sept 2026). It drives the

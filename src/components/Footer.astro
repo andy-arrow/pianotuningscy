@@ -5,6 +5,7 @@ import { site, serviceAreas } from '~/data/site';
 import { services } from '~/data/services';
 import { useTranslations, path, servicePath, areaPath, type Locale } from '~/i18n/ui';
 import Icon from '~/components/Icon.astro';
+import { openingHoursRows } from '~/lib/hours';
 
 interface Props { locale: Locale }
 const { locale } = Astro.props;
@@ -12,6 +13,7 @@ const t = useTranslations(locale);
 
 // Build year is stamped at build time — it can never go stale the way "©2022" did.
 const year = new Date().getFullYear();
+const hours = openingHoursRows(locale);
 ---
 
 <footer class="mt-24 border-t border-ebony-800 bg-ebony-950 text-ebony-300">
@@ -132,9 +134,12 @@ const year = new Date().getFullYear();
             {t('label.hours')}
           </h3>
           <dl class="mt-3 space-y-1.5 text-[0.9rem] text-ebony-400">
-            <div class="flex justify-between gap-4"><dt>{t('label.monFri')}</dt><dd>08:00 – 19:00</dd></div>
-            <div class="flex justify-between gap-4"><dt>{t('label.sat')}</dt><dd>09:00 – 15:00</dd></div>
-            <div class="flex justify-between gap-4"><dt>{t('label.sun')}</dt><dd>{t('label.closed')}</dd></div>
+            {hours.map((h) => (
+              <div class:list={['flex justify-between gap-4', h.closed && 'text-ebony-500']}>
+                <dt>{h.label}</dt>
+                <dd class:list={[!h.closed && 'tabular-nums']}>{h.value}</dd>
+              </div>
+            ))}
           </dl>
         </div>
       </div>

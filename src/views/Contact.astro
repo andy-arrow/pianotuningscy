@@ -3,6 +3,7 @@ import Base from '~/layouts/Base.astro';
 import PageHeader from '~/components/PageHeader.astro';
 import EnquiryForm from '~/components/EnquiryForm.astro';
 import Icon from '~/components/Icon.astro';
+import { openingHoursRows } from '~/lib/hours';
 import { site, serviceAreas } from '~/data/site';
 import { alternateUrls, path, useTranslations, type Locale } from '~/i18n/ui';
 import { breadcrumbs } from '~/lib/schema';
@@ -10,6 +11,7 @@ import { breadcrumbs } from '~/lib/schema';
 interface Props { locale: Locale; variant?: 'contact' | 'booking' }
 const { locale, variant = 'contact' } = Astro.props;
 const t = useTranslations(locale);
+const hours = openingHoursRows(locale);
 
 const routeKey = variant === 'booking' ? 'book' : 'contact';
 const alternates = alternateUrls(routeKey);
@@ -168,15 +170,12 @@ const contactMethods = [
                 {t('label.hours')}
               </h3>
               <dl class="mt-4 space-y-2 text-[0.925rem] text-ebony-700">
-                <div class="flex justify-between gap-4">
-                  <dt>{t('label.monFri')}</dt><dd class="tabular-nums">08:00 – 19:00</dd>
-                </div>
-                <div class="flex justify-between gap-4">
-                  <dt>{t('label.sat')}</dt><dd class="tabular-nums">09:00 – 15:00</dd>
-                </div>
-                <div class="flex justify-between gap-4 text-ebony-400">
-                  <dt>{t('label.sun')}</dt><dd>{t('label.closed')}</dd>
-                </div>
+                {hours.map((h) => (
+                  <div class:list={['flex justify-between gap-4', h.closed && 'text-ebony-400']}>
+                    <dt>{h.label}</dt>
+                    <dd class:list={[!h.closed && 'tabular-nums']}>{h.value}</dd>
+                  </div>
+                ))}
               </dl>
             </div>
 
