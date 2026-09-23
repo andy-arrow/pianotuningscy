@@ -1,0 +1,56 @@
+---
+import Base from '~/layouts/Base.astro';
+import PageHeader from '~/components/PageHeader.astro';
+import FaqAccordion from '~/components/FaqAccordion.astro';
+import CtaBand from '~/components/CtaBand.astro';
+import { faqs } from '~/data/faq';
+import { alternateUrls, path, useTranslations, type Locale } from '~/i18n/ui';
+import { breadcrumbs, faqSchema } from '~/lib/schema';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const alternates = alternateUrls('faq');
+const trail = [
+  { name: t('nav.home'), url: path('home', locale) },
+  { name: t('faq.title'), url: path('faq', locale) },
+];
+
+const meta = {
+  en: {
+    title: 'Piano Care FAQ — Cyprus | Piano Tunings Cy',
+    description:
+      'How often to tune a piano in Cyprus, what tuning costs, whether air conditioning harms a piano, moving advice and buying second-hand — answered by a technician of 14 years.',
+  },
+  el: {
+    title: 'Συχνές Ερωτήσεις για το Πιάνο | Piano Tunings Cy',
+    description:
+      'Κάθε πότε κουρδίζεται ένα πιάνο στην Κύπρο, πόσο κοστίζει, βλάπτει ο κλιματισμός, συμβουλές μεταφοράς και αγοράς μεταχειρισμένου — από τεχνικό 14 ετών.',
+  },
+}[locale];
+---
+
+<Base
+  title={meta.title}
+  description={meta.description}
+  alternates={alternates}
+  schema={[breadcrumbs(trail), faqSchema(faqs, locale)]}
+>
+  <PageHeader
+    eyebrow={t('home.faqEyebrow')}
+    title={t('faq.title')}
+    lead={t('faq.lead')}
+    locale={locale}
+    trail={trail}
+  />
+
+  <section class="bg-white py-16 lg:py-20">
+    <div class="container-narrow !px-0">
+      <div class="container-x">
+        <FaqAccordion items={faqs} locale={locale} />
+      </div>
+    </div>
+  </section>
+
+  <CtaBand locale={locale} title={t('faq.stillTitle')} lead={t('faq.stillLead')} />
+</Base>

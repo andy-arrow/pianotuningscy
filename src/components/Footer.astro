@@ -1,0 +1,151 @@
+---
+import { Image } from 'astro:assets';
+import logo from '~/assets/images/logo.png';
+import { site, serviceAreas } from '~/data/site';
+import { services } from '~/data/services';
+import { useTranslations, path, servicePath, areaPath, type Locale } from '~/i18n/ui';
+import Icon from '~/components/Icon.astro';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+// Build year is stamped at build time — it can never go stale the way "©2022" did.
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-24 border-t border-ebony-800 bg-ebony-950 text-ebony-300">
+  <div class="container-x py-16 lg:py-20">
+    <div class="grid grid-cols-1 gap-12 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+      <!-- Brand -->
+      <div>
+        <Image src={logo} alt={site.name} width={766} height={336} loading="lazy" class="h-11 w-auto brightness-0 invert" />
+        <p class="mt-5 max-w-xs text-[0.95rem] leading-relaxed text-ebony-400">
+          {t('footer.tagline')}
+        </p>
+        <nav class="mt-6 flex gap-2" aria-label={t('a11y.socialNav')}>
+          <a
+            href={site.social.facebook} target="_blank" rel="noopener noreferrer"
+            class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-ebony-700 text-ebony-300 transition-colors hover:border-gold-500 hover:text-gold-400"
+            aria-label={`Facebook (${t('a11y.newTab')})`}
+          ><Icon name="facebook" class="h-[18px] w-[18px]" /></a>
+          <a
+            href={site.social.instagram} target="_blank" rel="noopener noreferrer"
+            class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-ebony-700 text-ebony-300 transition-colors hover:border-gold-500 hover:text-gold-400"
+            aria-label={`Instagram (${t('a11y.newTab')})`}
+          ><Icon name="instagram" class="h-[18px] w-[18px]" /></a>
+        </nav>
+      </div>
+
+      <!-- Services -->
+      <nav aria-label={t('footer.servicesTitle')}>
+        <h2 class="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-gold-500">
+          {t('footer.servicesTitle')}
+        </h2>
+        <ul class="mt-5 space-y-3 text-[0.95rem]">
+          {services.map((s) => (
+            <li>
+              <a href={servicePath(s.slug, locale)} class="text-ebony-400 transition-colors hover:text-white">
+                {s[locale].name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <!-- Company + areas -->
+      <nav aria-label={t('footer.companyTitle')}>
+        <h2 class="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-gold-500">
+          {t('footer.companyTitle')}
+        </h2>
+        <ul class="mt-5 space-y-3 text-[0.95rem]">
+          {([
+            ['nav.about', path('about', locale)],
+            ['nav.reviews', path('reviews', locale)],
+            ['nav.faq', path('faq', locale)],
+            ['nav.contact', path('contact', locale)],
+            ['nav.book', path('book', locale)],
+          ] as const).map(([k, href]) => (
+            <li><a href={href} class="text-ebony-400 transition-colors hover:text-white">{t(k)}</a></li>
+          ))}
+        </ul>
+
+        <h2 class="mt-8 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-gold-500">
+          {t('nav.areas')}
+        </h2>
+        <ul class="mt-5 space-y-3 text-[0.95rem]">
+          {serviceAreas.map((a) => (
+            <li>
+              <a href={areaPath(a.slug, locale)} class="text-ebony-400 transition-colors hover:text-white">
+                {a[locale]}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <!-- Contact -->
+      <div>
+        <h2 class="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-gold-500">
+          {t('footer.contactTitle')}
+        </h2>
+        <ul class="mt-5 space-y-4 text-[0.95rem]">
+          <li>
+            <a href={`tel:${site.phone}`} data-analytics="footer-call" class="group flex items-start gap-3 text-ebony-300 transition-colors hover:text-white">
+              <Icon name="phone" class="mt-0.5 h-[18px] w-[18px] shrink-0 text-gold-500" />
+              <span class="font-medium">{site.phoneDisplay}</span>
+            </a>
+          </li>
+          <li>
+            <a href={`https://wa.me/${site.whatsapp}`} target="_blank" rel="noopener noreferrer" data-analytics="footer-whatsapp" class="flex items-start gap-3 text-ebony-300 transition-colors hover:text-white">
+              <Icon name="whatsapp" class="mt-0.5 h-[18px] w-[18px] shrink-0 text-gold-500" />
+              <span>WhatsApp</span>
+            </a>
+          </li>
+          <li>
+            <a href={`mailto:${site.email}`} data-analytics="footer-email" class="flex items-start gap-3 break-all text-ebony-300 transition-colors hover:text-white">
+              <Icon name="email" class="mt-0.5 h-[18px] w-[18px] shrink-0 text-gold-500" />
+              <span>{site.email}</span>
+            </a>
+          </li>
+          <li class="flex items-start gap-3 text-ebony-400">
+            <Icon name="pin" class="mt-0.5 h-[18px] w-[18px] shrink-0 text-gold-500" />
+            <span>
+              {site.address.locality}, {site.address.countryName[locale]}<br />
+              <span class="text-ebony-500">{t('label.serviceArea')}: {t('label.allCyprus')}</span>
+            </span>
+          </li>
+        </ul>
+
+        <div class="mt-7 border-t border-ebony-800 pt-5">
+          <h3 class="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-ebony-500">
+            {t('label.hours')}
+          </h3>
+          <dl class="mt-3 space-y-1.5 text-[0.9rem] text-ebony-400">
+            <div class="flex justify-between gap-4"><dt>{t('label.monFri')}</dt><dd>08:00 – 19:00</dd></div>
+            <div class="flex justify-between gap-4"><dt>{t('label.sat')}</dt><dd>09:00 – 15:00</dd></div>
+            <div class="flex justify-between gap-4"><dt>{t('label.sun')}</dt><dd>{t('label.closed')}</dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="border-t border-ebony-800">
+    <div class="container-x flex flex-col items-center justify-between gap-4 py-6 text-[0.85rem] text-ebony-500 sm:flex-row">
+      <p>© {year} {site.name}. {t('footer.rights')}</p>
+      <nav aria-label={t('footer.legalTitle')}>
+        <ul class="flex flex-wrap items-center gap-x-6 gap-y-2">
+          {([
+            ['footer.privacy', path('privacy', locale)],
+            ['footer.terms', path('terms', locale)],
+            ['footer.cookies', path('cookies', locale)],
+          ] as const).map(([k, href]) => (
+            <li><a href={href} class="transition-colors hover:text-ebony-300">{t(k)}</a></li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</footer>

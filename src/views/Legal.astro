@@ -1,0 +1,58 @@
+---
+import Base from '~/layouts/Base.astro';
+import PageHeader from '~/components/PageHeader.astro';
+import { legalDocs } from '~/data/legal';
+import { alternateUrls, path, useTranslations, type Locale } from '~/i18n/ui';
+import { breadcrumbs } from '~/lib/schema';
+
+interface Props { doc: 'privacy' | 'cookies' | 'terms'; locale: Locale }
+const { doc, locale } = Astro.props;
+const t = useTranslations(locale);
+const d = legalDocs[doc];
+
+const trail = [
+  { name: t('nav.home'), url: path('home', locale) },
+  { name: d.title[locale], url: path(doc, locale) },
+];
+
+// Stamped at build time so the revision date is always the real one.
+const revised = new Date().toLocaleDateString(locale === 'el' ? 'el-CY' : 'en-GB', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
+---
+
+<Base
+  title={`${d.title[locale]} | Piano Tunings Cy`}
+  description={d.description[locale]}
+  alternates={alternateUrls(doc)}
+  schema={[breadcrumbs(trail)]}
+>
+  <PageHeader
+    eyebrow={t('footer.legalTitle')}
+    title={d.title[locale]}
+    lead={d.description[locale]}
+    locale={locale}
+    trail={trail}
+  />
+
+  <section class="bg-white py-16 lg:py-20">
+    <div class="container-narrow">
+      <p class="text-[0.85rem] uppercase tracking-[0.1em] text-ebony-400">
+        {locale === 'el' ? 'Τελευταία ενημέρωση' : 'Last updated'}: {revised}
+      </p>
+
+      <div class="mt-12 space-y-12">
+        {d.sections[locale].map((s, i) => (
+          <section>
+            <h2 class="text-[1.5rem] leading-snug text-ebony-950 sm:text-[1.7rem]">
+              <span class="mr-3 font-display text-gold-500">{i + 1}.</span>{s.heading}
+            </h2>
+            <div class="mt-5 space-y-4 border-l border-ebony-200 pl-6">
+              {s.paras.map((p) => <p class="prose-body">{p}</p>)}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

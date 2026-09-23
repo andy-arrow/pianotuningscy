@@ -1,0 +1,181 @@
+---
+import Base from '~/layouts/Base.astro';
+import PageHeader from '~/components/PageHeader.astro';
+import ServiceCard from '~/components/ServiceCard.astro';
+import FaqAccordion from '~/components/FaqAccordion.astro';
+import CtaBand from '~/components/CtaBand.astro';
+import Icon from '~/components/Icon.astro';
+
+import { site, serviceAreas } from '~/data/site';
+import { featuredServices } from '~/data/services';
+import { areaContent } from '~/data/areaContent';
+import { faqsFor } from '~/data/faq';
+import { alternateUrls, path, areaPath, useTranslations, type Locale } from '~/i18n/ui';
+import { breadcrumbs, faqSchema } from '~/lib/schema';
+
+type Area = (typeof serviceAreas)[number];
+interface Props { area: Area; locale: Locale }
+const { area, locale } = Astro.props;
+const t = useTranslations(locale);
+
+const city = area[locale];
+const copy = areaContent[area.slug][locale];
+const alternates = alternateUrls({ kind: 'area', slug: area.slug });
+const areaFaqs = faqsFor('general').slice(0, 5);
+
+const trail = [
+  { name: t('nav.home'), url: path('home', locale) },
+  { name: t('nav.areas'), url: path('areas', locale) },
+  { name: city, url: areaPath(area.slug, locale) },
+];
+
+const meta =
+  locale === 'en'
+    ? {
+        title: `Piano Tuning in ${city}, Cyprus — Piano Tunings Cy`,
+        description: `Piano tuning, repairs, restoration and moving in ${city}. Tunings from €100 by Kleanthis Christoforou, piano technician in Cyprus since 2011. Call +357 99 405612.`,
+        h1: `Piano tuning in ${city}`,
+      }
+    : {
+        title: `Κούρδισμα Πιάνου ${area.elIn}, Κύπρος — Piano Tunings Cy`,
+        description: `Κούρδισμα, επισκευές, ανακαίνιση και μεταφορά πιάνου ${area.elIn}. Κουρδίσματα από €100 από τον Κλεάνθη Χριστοφόρου, τεχνικό πιάνου από το 2011.`,
+        h1: `Κούρδισμα πιάνου ${area.elIn}`,
+      };
+
+/** Area-scoped business node so Google ties the service to this city. */
+const areaSchema = {
+  '@type': 'Service',
+  name: meta.h1,
+  serviceType: locale === 'el' ? 'Κούρδισμα πιάνου' : 'Piano tuning',
+  provider: { '@id': `${site.url}/#business` },
+  areaServed: {
+    '@type': 'City',
+    name: city,
+    geo: { '@type': 'GeoCoordinates', latitude: area.lat, longitude: area.lng },
+  },
+  availableChannel: {
+    '@type': 'ServiceChannel',
+    serviceUrl: new URL(path('book', locale), site.url).toString(),
+    servicePhone: site.phone,
+  },
+};
+
+const others = serviceAreas.filter((a) => a.slug !== area.slug);
+---
+
+<Base
+  title={meta.title}
+  description={meta.description}
+  alternates={alternates}
+  schema={[breadcrumbs(trail), areaSchema, faqSchema(areaFaqs, locale)]}
+>
+  <PageHeader
+    eyebrow={t('label.serviceArea')}
+    title={meta.h1}
+    lead={copy.intro}
+    locale={locale}
+    trail={trail}
+  />
+
+  <section class="bg-white py-16 lg:py-20">
+    <div class="container-x">
+      <div class="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:gap-16">
+        <div>
+          <div class="space-y-5">
+            {copy.body.map((p) => <p class="prose-body">{p}</p>)}
+          </div>
+
+          <h2 class="mt-12 text-[1.6rem] text-ebony-950">
+            {locale === 'el' ? 'Περιοχές που εξυπηρετούμε' : 'Areas covered'}
+          </h2>
+          <div class="rule-gold mt-5"></div>
+          <ul class="mt-6 flex flex-wrap gap-2">
+            {
+              copy.nearby.map((n) => (
+                <li class="rounded-sm border border-ebony-200 bg-ebony-50 px-3.5 py-2 text-[0.875rem] text-ebony-700">
+                  {n}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <aside class="lg:sticky lg:top-32 lg:self-start">
+          <div class="rounded-sm border border-gold-300 bg-gold-50/60 p-7">
+            <h2 class="text-[1.35rem] text-ebony-950">
+              {locale === 'el' ? `Κλείστε ραντεβού ${area.elIn}` : `Book in ${city}`}
+            </h2>
+            <p class="prose-body mt-3 !text-[0.95rem]">
+              {
+                locale === 'el'
+                  ? `Τηλεφωνήστε ή στείλτε μήνυμα και θα λάβετε τα επόμενα διαθέσιμα ραντεβού ${area.elIn}.`
+                  : `Call or message and you will get the next available appointments for ${city}.`
+              }
+            </p>
+            <div class="mt-6 flex flex-col gap-3">
+              <a href={`tel:${site.phone}`} data-analytics={`area-call-${area.slug}`} class="btn-primary w-full">
+                <Icon name="phone" class="h-4 w-4" />
+                {site.phoneDisplay}
+              </a>
+              <a
+                href={`https://wa.me/${site.whatsapp}`}
+                target="_blank" rel="noopener noreferrer"
+                data-analytics={`area-whatsapp-${area.slug}`}
+                class="btn-ghost w-full"
+              >
+                <Icon name="whatsapp" class="h-4 w-4" />
+                WhatsApp
+              </a>
+              <a href={path('book', locale)} class="btn-ghost w-full">{t('cta.book')}</a>
+            </div>
+          </div>
+
+          <nav class="mt-6 rounded-sm border border-ebony-200 p-6" aria-label={t('nav.areas')}>
+            <h2 class="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-ebony-500">
+              {t('nav.areas')}
+            </h2>
+            <ul class="mt-4 space-y-2.5">
+              {
+                others.map((a) => (
+                  <li>
+                    <a
+                      href={areaPath(a.slug, locale)}
+                      class="flex items-center gap-2 text-[0.95rem] text-ebony-700 transition-colors hover:text-gold-700"
+                    >
+                      <Icon name="pin" class="h-3.5 w-3.5 text-gold-500" />
+                      {a[locale]}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </nav>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-ebony-50 py-20 lg:py-24">
+    <div class="container-x">
+      <h2 class="text-[1.9rem] text-ebony-950 sm:text-[2.2rem]">
+        {locale === 'el' ? `Υπηρεσίες ${area.elIn}` : `Services in ${city}`}
+      </h2>
+      <div class="rule-gold mt-6"></div>
+      <div class="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {featuredServices.slice(0, 3).map((s) => <ServiceCard service={s} locale={locale} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-white py-20 lg:py-24">
+    <div class="container-x">
+      <div class="max-w-3xl">
+        <h2 class="text-[1.9rem] text-ebony-950 sm:text-[2.2rem]">{t('faq.title')}</h2>
+        <div class="rule-gold mt-6 mb-12"></div>
+        <FaqAccordion items={areaFaqs} locale={locale} />
+      </div>
+    </div>
+  </section>
+
+  <CtaBand locale={locale} />
+</Base>

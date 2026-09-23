@@ -1,0 +1,65 @@
+# Legacy Wix URLs → new structure.
+# Every URL the old site had indexed is mapped to its closest equivalent so that
+# ranking, bookmarks and any printed material keep working. 301 = permanent.
+#
+# Format: Netlify (_redirects). Cloudflare Pages reads this file too.
+# For Vercel, the same map is mirrored in vercel.json.
+
+# --- English pages ---
+/blank-1                  /services/                           301
+/blank-2                  /about/                              301
+/blank-3                  /reviews/                            301
+/blank-4                  /contact/                            301
+/book-online              /book/                               301
+/pricing-plans/plans-pricing   /services/piano-guardian/       301
+/pricing-plans/*          /services/piano-guardian/            301
+/paywall                  /                                    301
+/plans                    /services/piano-guardian/            301
+
+# --- English service pages ---
+/service-page/piano-tuning                 /services/piano-tuning/          301
+/service-page/piano-evaluation             /services/piano-evaluation/      301
+/service-page/premium-grand-piano-rental   /services/grand-piano-rental/    301
+/service-page/piano-cover                  /services/piano-covers/          301
+/service-page/the-piano-guardian           /services/piano-guardian/        301
+/service-page/*                            /services/                       301
+
+# --- Wix booking system ---
+/booking-calendar/piano-tuning                /book/?service=piano-tuning        301
+/booking-calendar/piano-evaluation            /book/?service=piano-evaluation    301
+/booking-calendar/premium-grand-piano-rental  /book/?service=grand-piano-rental  301
+/booking-calendar/piano-cover                 /book/?service=piano-covers        301
+/booking-calendar/the-piano-guardian          /book/?service=piano-guardian      301
+/booking-calendar/*                           /book/                             301
+/booking-form/*                               /book/                             301
+/service-list/*                               /services/                         301
+
+# --- Greek pages ---
+/el/blank-1               /el/ypiresies/                       301
+/el/blank-2               /el/schetika-me-emas/                301
+/el/blank-3               /el/kritikes/                        301
+/el/blank-4               /el/epikoinonia/                     301
+/el/book-online           /el/klisi-rantevou/                  301
+/el/paywall               /el/                                 301
+/el/pricing-plans/*       /el/ypiresies/piano-guardian/        301
+
+# --- Greek service pages ---
+/el/service-page/piano-tuning                /el/ypiresies/kourdisma-pianou/          301
+/el/service-page/piano-evaluation            /el/ypiresies/ektimisi-pianou/           301
+/el/service-page/premium-grand-piano-rental  /el/ypiresies/enoikiasi-pianou-me-oura/  301
+/el/service-page/piano-cover                 /el/ypiresies/kalymmata-pianou/          301
+/el/service-page/the-piano-guardian          /el/ypiresies/piano-guardian/            301
+/el/service-page/*                           /el/ypiresies/                           301
+/el/booking-calendar/*                       /el/klisi-rantevou/                      301
+/el/service-list/*                           /el/ypiresies/                           301
+
+# --- Wix member/system routes that should never have been public ---
+/account/*                /                                    301
+/_partials/*              /                                    301
+
+# --- Legacy Wix sitemaps ---
+/pages-sitemap.xml              /sitemap-index.xml             301
+/booking-services-sitemap.xml   /sitemap-index.xml             301
+/pricing-plans-sitemap.xml      /sitemap-index.xml             301
+/el_el-sitemap.xml              /sitemap-index.xml             301
+/el_el-pages-sitemap.xml        /sitemap-index.xml             301

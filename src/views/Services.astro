@@ -1,0 +1,68 @@
+---
+import Base from '~/layouts/Base.astro';
+import PageHeader from '~/components/PageHeader.astro';
+import ServiceCard from '~/components/ServiceCard.astro';
+import CtaBand from '~/components/CtaBand.astro';
+import { services } from '~/data/services';
+import { alternateUrls, path, servicePath, useTranslations, type Locale } from '~/i18n/ui';
+import { breadcrumbs } from '~/lib/schema';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const alternates = alternateUrls('services');
+
+const trail = [
+  { name: t('nav.home'), url: path('home', locale) },
+  { name: t('services.title'), url: path('services', locale) },
+];
+
+const meta = {
+  en: {
+    title: 'Piano Services in Cyprus | Piano Tunings Cy',
+    description:
+      'Piano tuning from €100, repairs, full restorations, specialist moving, grand piano rental and evaluations across Cyprus. One technician, every service, since 2011.',
+  },
+  el: {
+    title: 'Υπηρεσίες Πιάνου στην Κύπρο | Piano Tunings Cy',
+    description:
+      'Κούρδισμα πιάνου από €100, επισκευές, πλήρεις ανακαινίσεις, εξειδικευμένη μεταφορά, ενοικίαση πιάνου με ουρά και εκτιμήσεις σε όλη την Κύπρο. Από το 2011.',
+  },
+}[locale];
+
+/** ItemList makes the service set legible to Google as a catalogue. */
+const listSchema = {
+  '@type': 'ItemList',
+  itemListElement: services.map((s, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: s[locale].name,
+    url: new URL(servicePath(s.slug, locale), Astro.site).toString(),
+  })),
+};
+---
+
+<Base
+  title={meta.title}
+  description={meta.description}
+  alternates={alternates}
+  schema={[breadcrumbs(trail), listSchema]}
+>
+  <PageHeader
+    eyebrow={t('nav.services')}
+    title={t('services.title')}
+    lead={t('services.lead')}
+    locale={locale}
+    trail={trail}
+  />
+
+  <section class="bg-ebony-50 py-20 lg:py-24">
+    <div class="container-x">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {services.map((s) => <ServiceCard service={s} locale={locale} />)}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand locale={locale} />
+</Base>

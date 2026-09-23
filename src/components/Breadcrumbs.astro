@@ -1,0 +1,25 @@
+---
+import { useTranslations, type Locale } from '~/i18n/ui';
+import Icon from '~/components/Icon.astro';
+
+interface Props { trail: { name: string; url: string }[]; locale: Locale; onDark?: boolean }
+const { trail, locale, onDark = false } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<nav aria-label={t('a11y.breadcrumb')} class="container-x pt-6">
+  <ol class:list={['flex flex-wrap items-center gap-1.5 text-[0.85rem]', onDark ? 'text-ebony-400' : 'text-ebony-500']}>
+    {
+      trail.map((item, i) => (
+        <li class="flex items-center gap-1.5">
+          {i > 0 && <Icon name="arrow-right" class="h-3 w-3 opacity-40" />}
+          {i === trail.length - 1 ? (
+            <span aria-current="page" class:list={[onDark ? 'text-ebony-200' : 'text-ebony-800']}>{item.name}</span>
+          ) : (
+            <a href={item.url} class="transition-colors hover:text-gold-700 hover:underline underline-offset-4">{item.name}</a>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>

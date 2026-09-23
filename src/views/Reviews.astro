@@ -1,0 +1,66 @@
+---
+import Base from '~/layouts/Base.astro';
+import PageHeader from '~/components/PageHeader.astro';
+import TestimonialCard from '~/components/TestimonialCard.astro';
+import CtaBand from '~/components/CtaBand.astro';
+import Icon from '~/components/Icon.astro';
+import { testimonials } from '~/data/testimonials';
+import { alternateUrls, path, useTranslations, type Locale } from '~/i18n/ui';
+import { breadcrumbs, reviewSchema } from '~/lib/schema';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const alternates = alternateUrls('reviews');
+const trail = [
+  { name: t('nav.home'), url: path('home', locale) },
+  { name: t('reviews.title'), url: path('reviews', locale) },
+];
+
+const meta = {
+  en: {
+    title: 'Reviews — Piano Tunings Cy',
+    description:
+      'What clients across Cyprus say about Kleanthis Christoforou and Piano Tunings Cy — composers, teachers, concert professionals and piano owners.',
+  },
+  el: {
+    title: 'Κριτικές — Piano Tunings Cy',
+    description:
+      'Τι λένε πελάτες σε όλη την Κύπρο για τον Κλεάνθη Χριστοφόρου και το Piano Tunings Cy — συνθέτες, καθηγητές, επαγγελματίες μουσικοί και ιδιοκτήτες πιάνου.',
+  },
+}[locale];
+---
+
+<Base
+  title={meta.title}
+  description={meta.description}
+  alternates={alternates}
+  schema={[breadcrumbs(trail), reviewSchema(locale)]}
+>
+  <PageHeader
+    eyebrow={t('home.reviewsEyebrow')}
+    title={t('reviews.title')}
+    lead={t('reviews.lead')}
+    locale={locale}
+    trail={trail}
+  />
+
+  <section class="bg-ebony-50 py-20 lg:py-24">
+    <div class="container-x">
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {testimonials.map((r, i) => (
+          <div class:list={[i === 0 && 'lg:col-span-2']}>
+            <TestimonialCard testimonial={r} locale={locale} featured={i === 0} />
+          </div>
+        ))}
+      </div>
+
+      <p class="mt-10 max-w-2xl text-[0.9rem] leading-relaxed text-ebony-500" data-reveal>
+        <Icon name="check" class="mr-1.5 inline h-3.5 w-3.5 text-gold-600" />
+        {t('reviews.note')}
+      </p>
+    </div>
+  </section>
+
+  <CtaBand locale={locale} />
+</Base>

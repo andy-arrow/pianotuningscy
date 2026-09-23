@@ -1,0 +1,12 @@
+---
+import Area from '~/views/Area.astro';
+import { serviceAreas } from '~/data/site';
+
+export function getStaticPaths() {
+  // Greek routes use the transliterated slug.
+  return serviceAreas.map((area) => ({ params: { slug: area.elSlug }, props: { area } }));
+}
+
+const { area } = Astro.props;
+---
+<Area area={area} locale="el" />

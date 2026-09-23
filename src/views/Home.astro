@@ -1,0 +1,212 @@
+---
+import { Image } from 'astro:assets';
+import Base from '~/layouts/Base.astro';
+import Hero from '~/components/Hero.astro';
+import Section from '~/components/Section.astro';
+import ServiceCard from '~/components/ServiceCard.astro';
+import TestimonialCard from '~/components/TestimonialCard.astro';
+import FaqAccordion from '~/components/FaqAccordion.astro';
+import CtaBand from '~/components/CtaBand.astro';
+import Icon from '~/components/Icon.astro';
+
+import { site, serviceAreas } from '~/data/site';
+import { featuredServices } from '~/data/services';
+import { testimonials } from '~/data/testimonials';
+import { faqsFor } from '~/data/faq';
+import { homeAbout, climateCards } from '~/data/pageContent';
+import { alternateUrls, path, areaPath, useTranslations, type Locale } from '~/i18n/ui';
+import { faqSchema, reviewSchema } from '~/lib/schema';
+
+import portrait from '~/assets/images/kleanthis-tuning-bosendorfer.jpg';
+import seaside from '~/assets/images/grand-piano-seaside.jpg';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const alternates = alternateUrls('home');
+const homeFaqs = faqsFor('general').slice(0, 6);
+const years = new Date().getFullYear() - site.foundingYear;
+const about = homeAbout[locale];
+const climate = climateCards[locale];
+
+const meta = {
+  en: {
+    title: 'Piano Tuning in Cyprus | Piano Tunings Cy',
+    description:
+      'Professional piano tuning, repair, restoration and moving across Cyprus since 2011. Tunings from €100, island-wide. Call Kleanthis Christoforou on +357 99 405612.',
+  },
+  el: {
+    title: 'Κούρδισμα Πιάνου στην Κύπρο | Piano Tunings Cy',
+    description:
+      'Επαγγελματικό κούρδισμα, επισκευή, ανακαίνιση και μεταφορά πιάνου σε όλη την Κύπρο από το 2011. Κουρδίσματα από €100. Καλέστε στο +357 99 405612.',
+  },
+}[locale];
+---
+
+<Base
+  title={meta.title}
+  description={meta.description}
+  alternates={alternates}
+  transparentHeader
+  schema={[faqSchema(homeFaqs, locale), reviewSchema(locale)]}
+>
+  <Hero locale={locale} />
+
+  <Section
+    eyebrow={t('home.servicesEyebrow')}
+    title={t('home.servicesTitle')}
+    lead={t('home.servicesLead')}
+    tone="light"
+  >
+    <div class="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {featuredServices.map((s) => <ServiceCard service={s} locale={locale} />)}
+    </div>
+    <div class="mt-10" data-reveal>
+      <a href={path('services', locale)} class="btn-ghost">
+        {t('cta.allServices')}
+        <Icon name="arrow-right" class="h-4 w-4" />
+      </a>
+    </div>
+  </Section>
+
+  <!-- The person behind the business -->
+  <section class="bg-white py-20 lg:py-28">
+    <div class="container-x">
+      <div class="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-20">
+        <div class="relative order-2 lg:order-1" data-reveal>
+          <Image
+            src={portrait}
+            alt={locale === 'el'
+              ? 'Ο Κλεάνθης Χριστοφόρου κουρδίζει πιάνο με ουρά Bösendorfer στο εργαστήριό του'
+              : 'Kleanthis Christoforou tuning a Bösendorfer grand piano in his workshop'}
+            width={880}
+            height={880}
+            widths={[440, 880]}
+            sizes="(min-width: 1024px) 480px, 90vw"
+            loading="lazy"
+            class="w-full rounded-sm object-cover"
+          />
+          <div class="absolute -bottom-6 -right-4 hidden rounded-sm bg-gold-600 px-7 py-5 text-white shadow-lg sm:block lg:-right-6">
+            <span class="block font-display text-[2.5rem] leading-none">{years}</span>
+            <span class="mt-1 block text-[0.75rem] font-semibold uppercase tracking-[0.14em]">
+              {t('home.trustYears')}
+            </span>
+          </div>
+        </div>
+
+        <div class="order-1 lg:order-2" data-reveal>
+          <p class="eyebrow">{t('home.aboutEyebrow')}</p>
+          <h2 class="mt-4 text-[2.1rem] leading-[1.12] text-ebony-950 sm:text-[2.6rem]">
+            {about.title}
+          </h2>
+          <div class="rule-gold mt-7"></div>
+
+          <div class="mt-7 space-y-5">
+            {about.paras.map((p) => <p class="prose-body" set:html={p} />)}
+          </div>
+
+          <ul class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {
+              about.bullets.map((item) => (
+                <li class="flex items-start gap-3 text-[0.95rem] text-ebony-700">
+                  <Icon name="check" class="mt-1 h-4 w-4 shrink-0 text-gold-600" />
+                  {item}
+                </li>
+              ))
+            }
+          </ul>
+
+          <a href={path('about', locale)} class="btn-ghost mt-9">
+            {t('cta.learnMore')}
+            <Icon name="arrow-right" class="h-4 w-4" />
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Climate: real expertise, and content that ranks locally -->
+  <Section
+    eyebrow={t('home.whyEyebrow')}
+    title={t('home.whyTitle')}
+    lead={t('home.whyLead')}
+    tone="cream"
+  >
+    <div class="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
+      {
+        climate.map((c) => (
+          <div class="card p-7" data-reveal>
+            <Icon name={c.icon as any} class="h-7 w-7 text-gold-600" />
+            <h3 class="mt-5 text-[1.25rem] text-ebony-950">{c.title}</h3>
+            <p class="prose-body mt-3 !text-[0.95rem]">{c.body}</p>
+          </div>
+        ))
+      }
+    </div>
+  </Section>
+
+  <Section eyebrow={t('home.reviewsEyebrow')} title={t('home.reviewsTitle')} tone="light">
+    <div class="mt-14 grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <div class="lg:col-span-2"><TestimonialCard testimonial={testimonials[0]} locale={locale} featured /></div>
+      <TestimonialCard testimonial={testimonials[2]} locale={locale} />
+      <TestimonialCard testimonial={testimonials[1]} locale={locale} />
+      <div class="lg:col-span-2"><TestimonialCard testimonial={testimonials[3]} locale={locale} /></div>
+    </div>
+    <div class="mt-10" data-reveal>
+      <a href={path('reviews', locale)} class="btn-ghost">
+        {t('cta.readReviews')}
+        <Icon name="arrow-right" class="h-4 w-4" />
+      </a>
+    </div>
+  </Section>
+
+  <!-- Service areas -->
+  <section class="relative isolate overflow-hidden bg-ebony-950 py-20 lg:py-28">
+    <Image
+      src={seaside} alt="" width={1794} height={1345}
+      widths={[900, 1400, 1794]} sizes="100vw" loading="lazy"
+      class="absolute inset-0 -z-10 h-full w-full object-cover opacity-20"
+    />
+    <div class="container-x">
+      <div class="max-w-2xl" data-reveal>
+        <p class="eyebrow !text-gold-400">{t('home.areasEyebrow')}</p>
+        <h2 class="mt-4 text-[2.1rem] leading-[1.12] text-white sm:text-[2.6rem]">{t('home.areasTitle')}</h2>
+        <p class="mt-5 text-[1.1rem] leading-[1.7] text-ebony-300">{t('home.areasLead')}</p>
+        <div class="rule-gold mt-8"></div>
+      </div>
+
+      <ul class="mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        {
+          serviceAreas.map((a) => (
+            <li data-reveal>
+              <a
+                href={areaPath(a.slug, locale)}
+                class="group flex min-h-[64px] items-center justify-between gap-3 rounded-sm border border-white/15 px-5 py-4 text-white transition-colors hover:border-gold-500 hover:bg-white/5"
+              >
+                <span class="flex min-w-0 items-center gap-2.5">
+                  <Icon name="pin" class="h-4 w-4 text-gold-500" />
+                  <span class="min-w-0 font-medium">{a[locale]}</span>
+                </span>
+                <Icon name="arrow-right" class="h-4 w-4 text-white/35 transition-transform group-hover:translate-x-1 group-hover:text-gold-400" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <Section eyebrow={t('home.faqEyebrow')} title={t('home.faqTitle')} tone="light">
+    <div class="mt-12 max-w-3xl">
+      <FaqAccordion items={homeFaqs} locale={locale} />
+      <div class="mt-9" data-reveal>
+        <a href={path('faq', locale)} class="btn-ghost">
+          {t('nav.faq')}
+          <Icon name="arrow-right" class="h-4 w-4" />
+        </a>
+      </div>
+    </div>
+  </Section>
+
+  <CtaBand locale={locale} />
+</Base>

@@ -1,0 +1,66 @@
+---
+/**
+ * Inline SVG icons. Inlined rather than icon-fonted so they inherit colour,
+ * scale crisply and cost no extra request.
+ */
+interface Props {
+  name: keyof typeof paths;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const paths = {
+  phone:
+    '<path d="M2.5 4.5A2 2 0 0 1 4.5 2.5h2a1 1 0 0 1 .97.76l.9 3.6a1 1 0 0 1-.28.96l-1.4 1.4a13 13 0 0 0 5.6 5.6l1.4-1.4a1 1 0 0 1 .96-.28l3.6.9a1 1 0 0 1 .76.97v2a2 2 0 0 1-2 2A15.5 15.5 0 0 1 2.5 4.5Z"/>',
+  whatsapp:
+    '<path d="M12 2a10 10 0 0 0-8.6 15.05L2 22l5.1-1.33A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.1.81.83-3.02-.2-.31A8.2 8.2 0 1 1 12 20.2Zm4.5-6.14c-.25-.13-1.46-.72-1.69-.8-.22-.09-.39-.13-.55.12s-.63.8-.77.97-.29.18-.53.06a6.7 6.7 0 0 1-2-1.23 7.4 7.4 0 0 1-1.36-1.7c-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.43.12-.15.16-.25.25-.42a.46.46 0 0 0-.02-.44c-.06-.13-.55-1.34-.76-1.83-.2-.47-.4-.41-.55-.42h-.47a.9.9 0 0 0-.65.3 2.74 2.74 0 0 0-.85 2.03 4.76 4.76 0 0 0 1 2.52 10.9 10.9 0 0 0 4.18 3.7c.58.25 1.04.4 1.4.51.59.19 1.12.16 1.54.1.47-.07 1.46-.6 1.66-1.18s.2-1.06.15-1.16-.23-.16-.48-.28Z"/>',
+  email:
+    '<path d="M2.5 6.5A2 2 0 0 1 4.5 4.5h15a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-15a2 2 0 0 1-2-2v-11Z"/><path d="m3 7 9 6 9-6" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  menu: '<path d="M3 6.5h18M3 12h18M3 17.5h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  close:
+    '<path d="m5 5 14 14M19 5 5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+  'arrow-right':
+    '<path d="M4 12h15m0 0-6-6m6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+  check:
+    '<path d="m4.5 12.5 5 5 10-11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  clock:
+    '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5.2l3.2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+  pin: '<path d="M12 21.5s7-6.2 7-11.3a7 7 0 1 0-14 0c0 5.1 7 11.3 7 11.3Z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="10" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  facebook:
+    '<path d="M14 9V7.2c0-.8.2-1.2 1.4-1.2H17V3.1A20 20 0 0 0 14.7 3C12.3 3 10.6 4.5 10.6 7v2H8v3.2h2.6V21H14v-8.8h2.6L17 9h-3Z"/>',
+  instagram:
+    '<rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17.2" cy="6.8" r="1.2"/>',
+  star: '<path d="m12 3.5 2.6 5.5 5.9.8-4.3 4.2 1 6-5.2-2.9L6.8 20l1-6-4.3-4.2 5.9-.8L12 3.5Z"/>',
+  quote:
+    '<path d="M9.5 6.5c-3 1.5-4.8 4-4.8 7.2 0 2.4 1.4 4 3.4 4 1.8 0 3.2-1.3 3.2-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.4-1.7 1.6-3 3.3-3.9l-1.4-1.3Zm8.6 0c-3 1.5-4.8 4-4.8 7.2 0 2.4 1.4 4 3.4 4 1.8 0 3.2-1.3 3.2-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.4-1.7 1.6-3 3.3-3.9l-1.4-1.3Z"/>',
+
+  // Service icons
+  tuning:
+    '<path d="M4 20V7.5M8 20V7.5M12 20V7.5M16 20V7.5M20 20V7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="2.5" y="4" width="19" height="16.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 4v9.5h1.6V4M10 4v9.5h1.6V4M14 4v9.5h1.6V4M18 4v9.5h1.6V4"/>',
+  repair:
+    '<path d="M14.8 6.2a4 4 0 0 1 5.3 5.3l-8.6 8.6a2.2 2.2 0 0 1-3.1-3.1l8.3-8.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M9.5 4.5 4 10l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  restore:
+    '<path d="M3.5 12a8.5 8.5 0 1 1 2.6 6.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M3 20v-5h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8v4.4l3 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+  move: '<rect x="2" y="9" width="13" height="8" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M15 11.5h3.4l2.6 3.1V17H15z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="6" cy="19" r="1.8" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="17.5" cy="19" r="1.8" fill="none" stroke="currentColor" stroke-width="1.6"/>',
+  rental:
+    '<path d="M3 18.5h18M5.5 18.5V9.2l6.5-4.7 6.5 4.7v9.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 18.5v-5h6v5" fill="none" stroke="currentColor" stroke-width="1.5"/>',
+  evaluate:
+    '<circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m15.4 15.4 5.1 5.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8 10.5h5M10.5 8v5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  guardian:
+    '<path d="M12 3 4.5 6v6c0 4.5 3.1 8 7.5 9.3 4.4-1.3 7.5-4.8 7.5-9.3V6L12 3Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.8 12.2 2.2 2.2 4.4-4.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+  cover:
+    '<path d="M3 9.5 12 5l9 4.5-9 4.5-9-4.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 9.5V17c0 .6.4 1.2 1 1.4l7.4 2.4c.4.1.8.1 1.2 0L20 18.4c.6-.2 1-.8 1-1.4V9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>',
+} as const;
+
+const { name, class: className = '', ...rest } = Astro.props;
+---
+
+<svg
+  viewBox="0 0 24 24"
+  fill="currentColor"
+  aria-hidden="true"
+  focusable="false"
+  class={className}
+  {...rest}
+  set:html={paths[name]}
+/>

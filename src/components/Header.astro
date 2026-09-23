@@ -1,0 +1,232 @@
+---
+import { Image } from 'astro:assets';
+import logo from '~/assets/images/logo.png';
+import { site } from '~/data/site';
+import { useTranslations, path, localeNames, bcp47, type Locale } from '~/i18n/ui';
+import Icon from '~/components/Icon.astro';
+
+interface Props {
+  locale: Locale;
+  alternates: Record<Locale, string>;
+  /** Sit transparently over a full-bleed hero, solidifying on scroll. */
+  transparent?: boolean;
+}
+const { locale, alternates, transparent = false } = Astro.props;
+const t = useTranslations(locale);
+const here = Astro.url.pathname;
+
+const nav = [
+  { key: 'nav.services', href: path('services', locale) },
+  { key: 'nav.about', href: path('about', locale) },
+  { key: 'nav.reviews', href: path('reviews', locale) },
+  { key: 'nav.faq', href: path('faq', locale) },
+  { key: 'nav.contact', href: path('contact', locale) },
+] as const;
+
+const isActive = (href: string) =>
+  here === href || (href !== path('home', locale) && here.startsWith(href));
+---
+
+<header
+  data-header
+  data-transparent={transparent ? 'true' : 'false'}
+  class:list={[
+    'sticky top-0 z-50 w-full border-b transition-[background-color,box-shadow,border-color] duration-300',
+    !transparent && 'border-ebony-200 bg-white/95 backdrop-blur-md',
+  ]}
+>
+  <div class="container-x">
+    <div class="flex h-20 items-center justify-between gap-4 lg:h-24">
+      <a
+        href={path('home', locale)}
+        class="flex min-h-[44px] shrink-0 items-center rounded-sm"
+        aria-label={`${site.name} — ${t('nav.home')}`}
+      >
+        <Image
+          src={logo}
+          alt={site.name}
+          width={766}
+          height={336}
+          loading="eager"
+          data-logo
+          class="h-9 w-auto lg:h-11"
+        />
+      </a>
+
+      <nav class="hidden hdr:block" aria-label={t('a11y.mainNav')}>
+        <ul class="flex items-center gap-1">
+          {
+            nav.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  data-header-link
+                  aria-current={isActive(item.href) ? 'page' : undefined}
+                  class="relative rounded-sm px-3.5 py-2 text-[0.9rem] font-medium text-ebony-700 transition-colors
+                         after:absolute after:inset-x-3.5 after:-bottom-0.5 after:h-px after:origin-left
+                         after:scale-x-0 after:bg-gold-500 after:transition-transform after:duration-300
+                         hover:text-ebony-950 hover:after:scale-x-100 aria-[current=page]:after:scale-x-100"
+                >
+                  {t(item.key)}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="flex min-w-0 flex-wrap items-center justify-end gap-2 lg:gap-3">
+        {/* Real links per locale, so both languages stay crawlable */}
+        <div data-langswitch class="flex items-center rounded-sm border border-ebony-200 p-0.5">
+          {
+            (['en', 'el'] as Locale[]).map((l) => (
+              <a
+                href={alternates[l]}
+                hreflang={bcp47[l]}
+                lang={bcp47[l]}
+                aria-current={l === locale ? 'true' : undefined}
+                aria-label={`${t('a11y.langSwitch')}: ${localeNames[l]}`}
+                data-lang-inactive={l === locale ? undefined : ''}
+                class:list={[
+                  'inline-flex min-h-[44px] min-w-[40px] items-center justify-center rounded-[2px] px-2.5',
+                  'text-xs font-semibold uppercase tracking-wider transition-colors',
+                  l === locale ? 'bg-gold-600 text-white' : 'text-ebony-500 hover:text-ebony-900',
+                ]}
+              >
+                {l}
+              </a>
+            ))
+          }
+        </div>
+
+        <a
+          href={`tel:${site.phone}`}
+          data-header-link
+          data-analytics="header-call"
+          class="hidden min-h-[44px] items-center gap-2 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-ebony-800 transition-colors hover:bg-ebony-100 tel:inline-flex"
+        >
+          <Icon name="phone" class="h-4 w-4" />
+          <span class="hidden xl:inline">{site.phoneDisplay}</span>
+          <span class="xl:hidden">{t('cta.call')}</span>
+        </a>
+
+        <a
+          href={path('book', locale)}
+          class="btn-primary hidden !px-5 !py-2.5 !text-[0.9rem] hdr:inline-flex"
+        >
+          {t('cta.book')}
+        </a>
+
+        <button
+          type="button"
+          data-menu-toggle
+          data-header-link
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+          aria-label={t('nav.open')}
+          class="inline-flex h-11 w-11 items-center justify-center rounded-sm text-ebony-900 transition-colors hover:bg-ebony-100 hdr:hidden"
+        >
+          <Icon name="menu" class="h-6 w-6" data-icon-menu />
+          <Icon name="close" class="hidden h-6 w-6" data-icon-close />
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="mobile-menu" data-menu-panel hidden class="border-t border-ebony-200 bg-white hdr:hidden">
+    <nav class="container-x py-5" aria-label={t('a11y.mainNav')}>
+      <ul class="flex flex-col divide-y divide-ebony-100">
+        {
+          [{ key: 'nav.home', href: path('home', locale) } as const, ...nav].map((item) => (
+            <li>
+              <a
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                class="flex min-h-[52px] items-center justify-between py-3 text-[1.05rem] font-medium text-ebony-800 aria-[current=page]:text-gold-700"
+              >
+                {t(item.key)}
+                <Icon name="arrow-right" class="h-4 w-4 text-ebony-300" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="mt-6 grid grid-cols-2 gap-3">
+        <a href={`tel:${site.phone}`} data-analytics="menu-call" class="btn-ghost">
+          <Icon name="phone" class="h-4 w-4" />
+          {t('cta.call')}
+        </a>
+        <a
+          href={`https://wa.me/${site.whatsapp}`}
+          rel="noopener noreferrer"
+          target="_blank"
+          data-analytics="menu-whatsapp"
+          class="btn-ghost"
+        >
+          <Icon name="whatsapp" class="h-4 w-4" />
+          WhatsApp
+        </a>
+      </div>
+      <a href={path('book', locale)} class="btn-primary mt-3 w-full">{t('cta.book')}</a>
+    </nav>
+  </div>
+</header>
+
+<script is:inline>
+  (() => {
+    const header = document.querySelector('[data-header]');
+    const btn = header?.querySelector('[data-menu-toggle]');
+    const panel = header?.querySelector('[data-menu-panel]');
+    if (!header || !btn || !panel) return;
+
+    const iconMenu = btn.querySelector('[data-icon-menu]');
+    const iconClose = btn.querySelector('[data-icon-close]');
+    const isTransparent = header.dataset.transparent === 'true';
+
+    // CSS owns every colour; JS only toggles one class.
+    const syncSolid = () => {
+      if (!isTransparent) return;
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      header.classList.toggle('is-solid', open || window.scrollY > 12);
+    };
+
+    const setOpen = (open) => {
+      btn.setAttribute('aria-expanded', String(open));
+      panel.hidden = !open;
+      iconMenu?.classList.toggle('hidden', open);
+      iconClose?.classList.toggle('hidden', !open);
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+      syncSolid();
+    };
+
+    btn.addEventListener('click', () => setOpen(btn.getAttribute('aria-expanded') !== 'true'));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+    panel.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    window
+      .matchMedia('(min-width: 64em)')
+      .addEventListener('change', (e) => e.matches && setOpen(false));
+
+    if (isTransparent) {
+      let ticking = false;
+      window.addEventListener(
+        'scroll',
+        () => {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(() => {
+            syncSolid();
+            ticking = false;
+          });
+        },
+        { passive: true },
+      );
+      syncSolid();
+    }
+  })();
+</script>

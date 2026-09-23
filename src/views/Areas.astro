@@ -1,0 +1,69 @@
+---
+import Base from '~/layouts/Base.astro';
+import PageHeader from '~/components/PageHeader.astro';
+import CtaBand from '~/components/CtaBand.astro';
+import Icon from '~/components/Icon.astro';
+import { serviceAreas } from '~/data/site';
+import { areaContent } from '~/data/areaContent';
+import { alternateUrls, path, areaPath, useTranslations, type Locale } from '~/i18n/ui';
+import { breadcrumbs } from '~/lib/schema';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const alternates = alternateUrls('areas');
+const trail = [
+  { name: t('nav.home'), url: path('home', locale) },
+  { name: t('nav.areas'), url: path('areas', locale) },
+];
+
+const meta = {
+  en: {
+    title: 'Areas We Cover | Piano Tunings Cy',
+    description:
+      'Piano tuning, repairs and moving in Nicosia, Limassol, Larnaca, Paphos and Famagusta. Based in Nicosia, working island-wide since 2011.',
+  },
+  el: {
+    title: 'Περιοχές Εξυπηρέτησης | Piano Tunings Cy',
+    description:
+      'Κούρδισμα, επισκευές και μεταφορά πιάνου σε Λευκωσία, Λεμεσό, Λάρνακα, Πάφο και Αμμόχωστο. Με έδρα τη Λευκωσία, σε όλο το νησί από το 2011.',
+  },
+}[locale];
+---
+
+<Base
+  title={meta.title}
+  description={meta.description}
+  alternates={alternates}
+  schema={[breadcrumbs(trail)]}
+>
+  <PageHeader
+    eyebrow={t('home.areasEyebrow')}
+    title={t('nav.areas')}
+    lead={t('home.areasLead')}
+    locale={locale}
+    trail={trail}
+  />
+
+  <section class="bg-ebony-50 py-16 lg:py-20">
+    <div class="container-x">
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        {serviceAreas.map((a) => (
+          <a href={areaPath(a.slug, locale)} class="card-hover group flex flex-col p-7" data-reveal>
+            <span class="flex items-center gap-3">
+              <Icon name="pin" class="h-5 w-5 text-gold-600" />
+              <h2 class="text-[1.5rem] text-ebony-950">{a[locale]}</h2>
+            </span>
+            <p class="prose-body mt-3 flex-1 !text-[0.95rem]">{areaContent[a.slug][locale].intro}</p>
+            <span class="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-700 transition-transform group-hover:translate-x-1">
+              {t('cta.learnMore')}
+              <Icon name="arrow-right" class="h-4 w-4" />
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand locale={locale} />
+</Base>

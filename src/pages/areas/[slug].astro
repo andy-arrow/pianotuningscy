@@ -1,0 +1,11 @@
+---
+import Area from '~/views/Area.astro';
+import { serviceAreas } from '~/data/site';
+
+export function getStaticPaths() {
+  return serviceAreas.map((area) => ({ params: { slug: area.slug }, props: { area } }));
+}
+
+const { area } = Astro.props;
+---
+<Area area={area} locale="en" />

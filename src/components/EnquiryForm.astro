@@ -1,0 +1,288 @@
+---
+import { site } from '~/data/site';
+import { services } from '~/data/services';
+import { useTranslations, path, type Locale } from '~/i18n/ui';
+import Icon from '~/components/Icon.astro';
+
+/**
+ * One form for both the contact and booking pages.
+ * Works with JavaScript disabled (normal POST + redirect to /thanks/);
+ * JS upgrades it to an inline success state without a reload.
+ */
+interface Props {
+  locale: Locale;
+  /** Booking mode asks the extra piano questions. */
+  variant?: 'contact' | 'booking';
+}
+const { locale, variant = 'contact' } = Astro.props;
+const t = useTranslations(locale);
+
+const isPreview = import.meta.env.PUBLIC_PREVIEW === 'true';
+const action = site.forms.endpoint || path('thanks', locale);
+const lastTuned = t('form.lastTunedOptions').split('|');
+const fieldBase =
+  'w-full rounded-sm border border-ebony-300 bg-white px-4 py-3 text-[1rem] text-ebony-900 ' +
+  'transition-colors placeholder:text-ebony-400 hover:border-ebony-400 ' +
+  'focus:border-gold-600 focus:outline-none focus:ring-2 focus:ring-gold-600/25 min-h-[48px]';
+---
+
+<form
+  data-enquiry-form
+  name={site.forms.netlifyName}
+  method="POST"
+  action={action}
+  data-netlify="true"
+  netlify-honeypot="company-website"
+  class="space-y-5"
+  novalidate
+>
+  <input type="hidden" name="form-name" value={site.forms.netlifyName} />
+  <input type="hidden" name="locale" value={locale} />
+  <input type="hidden" name="source-page" value={Astro.url.pathname} />
+
+  {/* Honeypot — hidden from people, irresistible to bots. */}
+  <p class="hidden" aria-hidden="true">
+    <label>Do not fill this in: <input name="company-website" tabindex="-1" autocomplete="off" /></label>
+  </p>
+
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    <div>
+      <label for="f-name" class="mb-2 block text-sm font-semibold text-ebony-800">
+        {t('form.name')} <span class="text-gold-700" aria-hidden="true">*</span>
+        <span class="sr-only">({t('label.required')})</span>
+      </label>
+      <input id="f-name" name="name" type="text" required autocomplete="name" class={fieldBase} />
+      <p data-error-for="f-name" class="mt-1.5 hidden text-sm text-red-700"></p>
+    </div>
+
+    <div>
+      <label for="f-phone" class="mb-2 block text-sm font-semibold text-ebony-800">
+        {t('form.phone')} <span class="text-gold-700" aria-hidden="true">*</span>
+        <span class="sr-only">({t('label.required')})</span>
+      </label>
+      <input id="f-phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel" class={fieldBase} />
+      <p data-error-for="f-phone" class="mt-1.5 hidden text-sm text-red-700"></p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    <div>
+      <label for="f-email" class="mb-2 block text-sm font-semibold text-ebony-800">
+        {t('form.email')} <span class="font-normal text-ebony-400">({t('label.optional')})</span>
+      </label>
+      <input id="f-email" name="email" type="email" autocomplete="email" inputmode="email" class={fieldBase} />
+      <p data-error-for="f-email" class="mt-1.5 hidden text-sm text-red-700"></p>
+    </div>
+
+    <div>
+      <label for="f-city" class="mb-2 block text-sm font-semibold text-ebony-800">
+        {t('form.city')} <span class="text-gold-700" aria-hidden="true">*</span>
+        <span class="sr-only">({t('label.required')})</span>
+      </label>
+      <input id="f-city" name="city" type="text" required autocomplete="address-level2" class={fieldBase} />
+      <p data-error-for="f-city" class="mt-1.5 hidden text-sm text-red-700"></p>
+    </div>
+  </div>
+
+  <div>
+    <label for="f-service" class="mb-2 block text-sm font-semibold text-ebony-800">
+      {t('form.service')} <span class="text-gold-700" aria-hidden="true">*</span>
+      <span class="sr-only">({t('label.required')})</span>
+    </label>
+    <select id="f-service" name="service" required class={fieldBase}>
+      <option value="" disabled selected>{t('form.servicePlaceholder')}</option>
+      {services.map((s) => (
+        <option value={s[locale].name} data-slug={s.slug}>{s[locale].name}</option>
+      ))}
+      <option value="other">{t('form.serviceOther')}</option>
+    </select>
+    <p data-error-for="f-service" class="mt-1.5 hidden text-sm text-red-700"></p>
+  </div>
+
+  {
+    variant === 'booking' && (
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <fieldset>
+          <legend class="mb-2 block text-sm font-semibold text-ebony-800">{t('form.pianoType')}</legend>
+          <div class="flex flex-wrap gap-2">
+            {([
+              ['upright', t('form.pianoUpright')],
+              ['grand', t('form.pianoGrand')],
+              ['digital', t('form.pianoDigital')],
+              ['unsure', t('form.pianoUnsure')],
+            ] as const).map(([v, labelText]) => (
+              <label class="cursor-pointer">
+                <input type="radio" name="piano-type" value={v} class="peer sr-only" />
+                <span class="inline-flex min-h-[44px] items-center rounded-sm border border-ebony-300 px-4 py-2.5 text-sm transition-colors hover:border-ebony-500 peer-checked:border-gold-600 peer-checked:bg-gold-50 peer-checked:font-semibold peer-checked:text-gold-800 peer-focus-visible:ring-2 peer-focus-visible:ring-gold-600/40">
+                  {labelText}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div>
+          <label for="f-lasttuned" class="mb-2 block text-sm font-semibold text-ebony-800">
+            {t('form.lastTuned')}
+          </label>
+          <select id="f-lasttuned" name="last-tuned" class={fieldBase}>
+            <option value="" selected>—</option>
+            {lastTuned.map((o) => <option value={o}>{o}</option>)}
+          </select>
+        </div>
+      </div>
+    )
+  }
+
+  <div>
+    <label for="f-message" class="mb-2 block text-sm font-semibold text-ebony-800">
+      {t('form.message')} <span class="font-normal text-ebony-400">({t('label.optional')})</span>
+    </label>
+    <textarea
+      id="f-message" name="message" rows="4"
+      placeholder={t('form.messagePlaceholder')}
+      class={`${fieldBase} resize-y`}
+    ></textarea>
+  </div>
+
+  <div class="flex items-start gap-3 rounded-sm bg-ebony-100/60 p-4">
+    <input
+      id="f-consent" name="consent" type="checkbox" required
+      class="mt-0.5 h-6 w-6 shrink-0 cursor-pointer rounded-[2px] border-ebony-400 text-gold-600 focus:ring-2 focus:ring-gold-600/40"
+    />
+    <label for="f-consent" class="text-[0.9rem] leading-relaxed text-ebony-700">
+      {t('form.consent')}{' '}
+      <a href={path('privacy', locale)} class="link-underline font-medium">{t('footer.privacy')}</a>
+    </label>
+  </div>
+  <p data-error-for="f-consent" class="-mt-3 hidden text-sm text-red-700"></p>
+
+  <button type="submit" data-submit data-analytics="form-submit" class="btn-primary w-full sm:w-auto sm:!px-10">
+    <span data-submit-label>{t('form.submit')}</span>
+    <Icon name="arrow-right" class="h-4 w-4" />
+  </button>
+
+  <p class="flex items-start gap-2 text-[0.85rem] text-ebony-500">
+    <Icon name="check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-600" />
+    {t('form.privacyNote')}
+  </p>
+
+  <div
+    data-form-status
+    role="status"
+    aria-live="polite"
+    class="hidden rounded-sm border p-5"
+  ></div>
+</form>
+
+<script is:inline define:vars={{ strings: {
+  required: t('form.errorRequired'),
+  email: t('form.errorEmail'),
+  generic: t('form.errorGeneric'),
+  sending: t('form.sending'),
+  submit: t('form.submit'),
+  thanksTitle: t('thanks.title'),
+  thanksLead: t('thanks.lead'),
+}, endpoint: site.forms.endpoint, isPreview,
+   previewMsg: locale === 'el'
+     ? 'Η φόρμα λειτουργεί. Σε αυτή την προεπισκόπηση δεν αποστέλλεται μήνυμα — στη ζωντανή ιστοσελίδα θα έφτανε στο info@pianotuningscy.com.'
+     : 'The form works. Nothing is sent from this preview — on the live site this would arrive at info@pianotuningscy.com.' }}>
+  (() => {
+    const form = document.querySelector('[data-enquiry-form]');
+    if (!form) return;
+
+    // Static build: ?service=piano-tuning is resolved in the browser, not at build time.
+    const wanted = new URLSearchParams(location.search).get('service');
+    if (wanted) {
+      const opt = form.querySelector(`#f-service option[data-slug="${CSS.escape(wanted)}"]`);
+      if (opt) opt.selected = true;
+    }
+
+    const status = form.querySelector('[data-form-status]');
+    const btn = form.querySelector('[data-submit]');
+    const btnLabel = form.querySelector('[data-submit-label]');
+
+    const showError = (field, msg) => {
+      const el = form.querySelector(`[data-error-for="${field.id}"]`);
+      field.setAttribute('aria-invalid', 'true');
+      field.classList.add('border-red-600');
+      if (el) { el.textContent = msg; el.classList.remove('hidden'); field.setAttribute('aria-describedby', el.id || ''); }
+    };
+    const clearError = (field) => {
+      const el = form.querySelector(`[data-error-for="${field.id}"]`);
+      field.removeAttribute('aria-invalid');
+      field.classList.remove('border-red-600');
+      if (el) { el.textContent = ''; el.classList.add('hidden'); }
+    };
+
+    const validate = () => {
+      let first = null;
+      form.querySelectorAll('[required]').forEach((f) => {
+        clearError(f);
+        const empty = f.type === 'checkbox' ? !f.checked : !String(f.value).trim();
+        if (empty) { showError(f, strings.required); first = first || f; }
+      });
+      const email = form.querySelector('#f-email');
+      if (email && email.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) {
+        showError(email, strings.email); first = first || email;
+      }
+      if (first) { first.focus(); first.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      return !first;
+    };
+
+    form.querySelectorAll('input, select, textarea').forEach((f) => {
+      f.addEventListener('input', () => f.getAttribute('aria-invalid') && clearError(f));
+      f.addEventListener('change', () => f.getAttribute('aria-invalid') && clearError(f));
+    });
+
+    form.addEventListener('submit', async (e) => {
+      if (!validate()) { e.preventDefault(); return; }
+
+      // No configured endpoint and not on Netlify → let the plain POST happen.
+      const data = new FormData(form);
+      e.preventDefault();
+
+      btn.disabled = true;
+      btn.classList.add('opacity-70', 'cursor-wait');
+      btnLabel.textContent = strings.sending;
+
+      // Review deploys have no form backend. Show the real success state plus an
+      // honest note, so the flow can be tested without looking broken.
+      if (isPreview) {
+        setTimeout(() => {
+          form.querySelectorAll('input, select, textarea, button').forEach((el) => { el.disabled = true; });
+          status.className = 'rounded-sm border border-gold-600/40 bg-gold-50 p-5';
+          status.innerHTML =
+            '<p class="font-display text-xl text-ebony-950">' + strings.thanksTitle + '</p>' +
+            '<p class="mt-2 text-[0.95rem] leading-relaxed text-ebony-700">' + previewMsg + '</p>';
+          status.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }, 600);
+        return;
+      }
+
+      try {
+        const res = await fetch(endpoint || '/', {
+          method: 'POST',
+          headers: endpoint ? { Accept: 'application/json' } : { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: endpoint ? data : new URLSearchParams(data).toString(),
+        });
+        if (!res.ok) throw new Error('bad status ' + res.status);
+
+        form.querySelectorAll('input, select, textarea, button').forEach((el) => { el.disabled = true; });
+        status.className = 'rounded-sm border border-green-700/30 bg-green-50 p-5';
+        status.innerHTML =
+          '<p class="font-display text-xl text-ebony-950">' + strings.thanksTitle + '</p>' +
+          '<p class="mt-2 text-[0.95rem] leading-relaxed text-ebony-700">' + strings.thanksLead + '</p>';
+        status.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        if (window.plausible) window.plausible('Enquiry sent');
+      } catch (err) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-70', 'cursor-wait');
+        btnLabel.textContent = strings.submit;
+        status.className = 'rounded-sm border border-red-700/30 bg-red-50 p-5';
+        status.textContent = strings.generic;
+        status.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    });
+  })();
+</script>

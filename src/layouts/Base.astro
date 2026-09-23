@@ -1,0 +1,196 @@
+---
+import '~/styles/global.css';
+import Header from '~/components/Header.astro';
+import Footer from '~/components/Footer.astro';
+import StickyCallBar from '~/components/StickyCallBar.astro';
+import { site } from '~/data/site';
+import { bcp47, localeFromUrl, useTranslations, type Locale } from '~/i18n/ui';
+import { graph, localBusiness, person, website, webPage } from '~/lib/schema';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Equivalent URLs per locale, for hreflang + the language switcher. */
+  alternates: Record<Locale, string>;
+  /** Extra JSON-LD nodes merged into the page @graph. */
+  schema?: unknown[];
+  /** Social share image path under /public. Defaults per locale. */
+  ogImage?: string;
+  /** Set on pages that should not be indexed. */
+  noindex?: boolean;
+  /** Tightens the header against a full-bleed hero. */
+  transparentHeader?: boolean;
+}
+
+const {
+  title,
+  description,
+  alternates,
+  schema = [],
+  ogImage,
+  noindex = false,
+  transparentHeader = false,
+} = Astro.props;
+
+const locale = localeFromUrl(Astro.url) as Locale;
+const t = useTranslations(locale);
+
+/** True only on review deploys. */
+const isPreview = import.meta.env.PUBLIC_PREVIEW === 'true';
+
+const canonical = new URL(alternates[locale], site.url).toString();
+const ogUrl = new URL(ogImage ?? (locale === 'el' ? '/og/og-el.jpg' : '/og/og-default.jpg'), site.url).toString();
+const fullTitle = title.includes(site.name) ? title : `${title} | ${site.name}`;
+
+const jsonLd = graph([
+  localBusiness(locale),
+  person(locale),
+  website(locale),
+  webPage({ locale, url: alternates[locale], title: fullTitle, description }),
+  ...schema,
+]);
+---
+
+<!doctype html>
+<html lang={bcp47[locale]} dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {(noindex || isPreview) && <meta name="robots" content="noindex, nofollow" />}
+
+    {/* hreflang — en-CY / el-CY, not the en-US the old site shipped */}
+    {
+      (Object.keys(alternates) as Locale[]).map((l) => (
+        <link rel="alternate" hreflang={bcp47[l]} href={new URL(alternates[l], site.url).toString()} />
+      ))
+    }
+    <link rel="alternate" hreflang="x-default" href={new URL(alternates.en, site.url).toString()} />
+
+    {/* Branded icons — the old site shipped Wix's default favicon */}
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#1a1917" />
+
+    {/* Open Graph / Twitter */}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content={locale === 'el' ? 'el_CY' : 'en_CY'} />
+    <meta property="og:locale:alternate" content={locale === 'el' ? 'en_CY' : 'el_CY'} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={site.name} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogUrl} />
+
+    <meta name="author" content={site.technician.name} />
+    <meta name="geo.region" content="CY" />
+    <meta name="geo.placename" content={site.address.locality} />
+
+    <script type="application/ld+json" set:html={jsonLd} is:inline />
+
+    {/* Marks JS as live before first paint. The reveal styles key off this, so a
+        browser without JS (or a script that fails) never gets a hidden page. */}
+    <script is:inline>document.documentElement.classList.add('js');</script>
+
+    {/* Privacy-first analytics: no cookies, so no consent banner is required. */}
+    {
+      !isPreview && site.analytics.plausibleDomain && (
+        <script
+          is:inline
+          defer
+          data-domain={site.analytics.plausibleDomain}
+          src="https://plausible.io/js/script.outbound-links.tagged-events.js"
+        />
+      )
+    }
+  </head>
+
+  <body class="min-h-screen antialiased">
+    <a class="skip-link" href="#main">{t('nav.skip')}</a>
+
+    {
+      isPreview && (
+        <div class="bg-gold-600 px-4 py-2 text-center text-[0.8rem] font-semibold text-white">
+          {locale === 'el'
+            ? 'Προεπισκόπηση για έλεγχο — δεν είναι η ζωντανή ιστοσελίδα.'
+            : 'Preview for review — this is not the live website.'}
+        </div>
+      )
+    }
+
+    <Header locale={locale} alternates={alternates} transparent={transparentHeader} />
+
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+
+    <Footer locale={locale} />
+    <StickyCallBar locale={locale} />
+
+    {/* Reveal-on-scroll.
+
+        A sweep rather than an IntersectionObserver: an observer only fires for
+        elements that are sampled while intersecting, so anything the user skips
+        past in one jump — a fast flick, a restored scroll position, an anchor
+        link — would stay at opacity 0 forever. This reveals everything at or
+        above the fold line on every frame, so nothing can be stranded. */}
+    <script is:inline>
+      (() => {
+        let pending = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
+        if (!pending.length) return;
+
+        const revealAll = () => {
+          pending.forEach((el) => el.classList.add('is-in'));
+          pending = [];
+        };
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          revealAll();
+          return;
+        }
+
+        let ticking = false;
+        const sweep = () => {
+          ticking = false;
+          const line = window.innerHeight * 0.92;
+          const still = [];
+          for (const el of pending) {
+            // top < line catches both "entering view" and "already scrolled past".
+            if (el.getBoundingClientRect().top < line) el.classList.add('is-in');
+            else still.push(el);
+          }
+          pending = still;
+          if (!pending.length) {
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', onScroll);
+          }
+        };
+        const onScroll = () => {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(sweep);
+        };
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+        sweep();
+        // Late-loading images shift layout; re-sweep once everything has settled.
+        window.addEventListener('load', sweep);
+        // Failsafe: never leave content hidden, whatever happens above.
+        setTimeout(revealAll, 4000);
+      })();
+    </script>
+  </body>
+</html>

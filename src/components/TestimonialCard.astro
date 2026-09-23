@@ -1,0 +1,30 @@
+---
+import type { Testimonial } from '~/data/testimonials';
+import type { Locale } from '~/i18n/ui';
+import Icon from '~/components/Icon.astro';
+
+interface Props { testimonial: Testimonial; locale: Locale; featured?: boolean }
+const { testimonial: r, locale, featured = false } = Astro.props;
+---
+
+<figure
+  data-reveal
+  class:list={[
+    'card flex h-full flex-col p-7 lg:p-8',
+    featured && 'border-gold-300 bg-gold-50/50',
+  ]}
+>
+  <Icon name="quote" class="h-7 w-7 shrink-0 text-gold-400" />
+  <blockquote class="mt-5 flex-1">
+    <p class:list={[
+      'text-ebony-700',
+      featured ? 'font-display text-[1.35rem] leading-[1.55] text-ebony-800' : 'text-[1rem] leading-[1.75]',
+    ]}>
+      {r.quote[locale]}
+    </p>
+  </blockquote>
+  <figcaption class="mt-6 border-t border-ebony-100 pt-5">
+    <span class="block font-semibold text-ebony-950">{r.author}</span>
+    {r.role && <span class="mt-0.5 block text-[0.875rem] text-ebony-500">{r.role[locale]}</span>}
+  </figcaption>
+</figure>

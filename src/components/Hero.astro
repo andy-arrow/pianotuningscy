@@ -1,0 +1,87 @@
+---
+import { Image } from 'astro:assets';
+import { site } from '~/data/site';
+import { useTranslations, path, type Locale } from '~/i18n/ui';
+import Icon from '~/components/Icon.astro';
+import hero from '~/assets/images/kleanthis-tuning-concert-grand.jpg';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const years = new Date().getFullYear() - site.foundingYear;
+---
+
+<section class="relative isolate -mt-20 flex min-h-[86svh] items-end overflow-hidden bg-ebony-950 lg:-mt-24 lg:min-h-[92svh]">
+  <!-- Hero image: eager + high priority, it is the LCP element -->
+  <Image
+    src={hero}
+    alt={locale === 'el'
+      ? 'Ο Κλεάνθης Χριστοφόρου κουρδίζει πιάνο με ουρά σε σκηνή συναυλιών'
+      : 'Kleanthis Christoforou tuning a concert grand piano on stage'}
+    width={1920}
+    height={1689}
+    widths={[640, 960, 1280, 1920]}
+    sizes="100vw"
+    loading="eager"
+    fetchpriority="high"
+    decoding="sync"
+    class="absolute inset-0 -z-10 h-full w-full object-cover object-[62%_center]"
+  />
+  <!-- Two-stop scrim: keeps text at AAA contrast without flattening the photo -->
+  <div class="absolute inset-0 -z-10 bg-gradient-to-t from-ebony-950 via-ebony-950/75 to-ebony-950/35"></div>
+  <div class="absolute inset-0 -z-10 bg-gradient-to-r from-ebony-950/85 via-ebony-950/40 to-transparent"></div>
+
+  <div class="container-x w-full pb-16 pt-32 lg:pb-24 lg:pt-40">
+    <div class="max-w-2xl">
+      <p class="eyebrow !text-gold-400">{t('home.heroEyebrow')}</p>
+
+      <h1 class="mt-5 text-[2.75rem] leading-[1.04] text-white sm:text-[3.5rem] lg:text-[4.25rem]">
+        {t('home.heroTitle')}
+      </h1>
+
+      <p class="mt-6 max-w-xl text-[1.1rem] leading-[1.7] text-ebony-200 lg:text-[1.2rem]">
+        {t('home.heroLead')}
+      </p>
+
+      <div class="mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <a href={path('book', locale)} data-analytics="hero-book" class="btn-primary sm:!px-8">
+          {t('cta.book')}
+          <Icon name="arrow-right" class="h-4 w-4" />
+        </a>
+        <a href={`tel:${site.phone}`} data-analytics="hero-call" class="btn-on-dark sm:!px-8">
+          <Icon name="phone" class="h-4 w-4" />
+          {site.phoneDisplay}
+        </a>
+      </div>
+
+      <!-- Trust strip: the facts a stranger needs before phoning a tradesperson -->
+      <dl class="mt-12 grid max-w-lg grid-cols-3 gap-5 border-t border-white/15 pt-7">
+        <div>
+          <dt class="sr-only">{t('home.trustYears')}</dt>
+          <dd>
+            <span class="block font-display text-[2.1rem] leading-none text-gold-400">{years}</span>
+            <span class="mt-1.5 block text-[0.8rem] leading-tight text-ebony-300">{t('home.trustYears')}</span>
+          </dd>
+        </div>
+        <div>
+          <dt class="sr-only">{t('home.trustIsland')}</dt>
+          <dd>
+            <span class="block font-display text-[2.1rem] leading-none text-gold-400">5</span>
+            <span class="mt-1.5 block text-[0.8rem] leading-tight text-ebony-300">
+              {locale === 'el' ? 'επαρχίες' : 'districts'}
+            </span>
+          </dd>
+        </div>
+        <div>
+          <dt class="sr-only">{t('label.serviceArea')}</dt>
+          <dd>
+            <span class="block font-display text-[2.1rem] leading-none text-gold-400">A440</span>
+            <span class="mt-1.5 block text-[0.8rem] leading-tight text-ebony-300">
+              {locale === 'el' ? 'διαπασών συναυλίας' : 'concert pitch'}
+            </span>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>

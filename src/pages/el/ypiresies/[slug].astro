@@ -1,0 +1,12 @@
+---
+import ServiceDetail from '~/views/ServiceDetail.astro';
+import { services } from '~/data/services';
+
+export function getStaticPaths() {
+  // Greek routes use the translated slug.
+  return services.map((service) => ({ params: { slug: service.elSlug }, props: { service } }));
+}
+
+const { service } = Astro.props;
+---
+<ServiceDetail service={service} locale="el" />

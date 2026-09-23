@@ -1,0 +1,41 @@
+---
+import { site } from '~/data/site';
+import { useTranslations, path, type Locale } from '~/i18n/ui';
+import Icon from '~/components/Icon.astro';
+
+interface Props { locale: Locale; title?: string; lead?: string }
+const { locale, title, lead } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<section class="bg-ebony-950 py-20 lg:py-24">
+  <div class="container-x">
+    <div class="mx-auto max-w-3xl text-center" data-reveal>
+      <div class="rule-gold mx-auto" />
+      <h2 class="mt-8 text-[2.1rem] leading-[1.14] text-white sm:text-[2.6rem]">
+        {title ?? t('home.ctaTitle')}
+      </h2>
+      <p class="mt-5 text-[1.1rem] leading-[1.7] text-ebony-300">
+        {lead ?? t('home.ctaLead')}
+      </p>
+
+      <div class="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <a href={path('book', locale)} data-analytics="cta-book" class="btn-primary">
+          {t('cta.book')}
+          <Icon name="arrow-right" class="h-4 w-4" />
+        </a>
+        <a href={`tel:${site.phone}`} data-analytics="cta-call" class="btn-on-dark">
+          <Icon name="phone" class="h-4 w-4" />
+          {site.phoneDisplay}
+        </a>
+        <a
+          href={`https://wa.me/${site.whatsapp}`} target="_blank" rel="noopener noreferrer"
+          data-analytics="cta-whatsapp" class="btn-on-dark"
+        >
+          <Icon name="whatsapp" class="h-4 w-4" />
+          WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

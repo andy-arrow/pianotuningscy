@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Piano Tunings Cy">
+  <rect width="64" height="64" rx="12" fill="#1a1917"/>
+  <!-- White keys -->
+  <g fill="#f4efe4">
+    <rect x="12" y="16" width="12" height="32" rx="1.5"/>
+    <rect x="26" y="16" width="12" height="32" rx="1.5"/>
+    <rect x="40" y="16" width="12" height="32" rx="1.5"/>
+  </g>
+  <!-- Black keys, in brand gold so the mark reads as gold at small sizes -->
+  <g fill="#ae9962">
+    <rect x="20.5" y="16" width="7" height="20" rx="1.2"/>
+    <rect x="34.5" y="16" width="7" height="20" rx="1.2"/>
+  </g>
+</svg>

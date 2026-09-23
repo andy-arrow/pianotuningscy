@@ -1,0 +1,47 @@
+---
+import Base from '~/layouts/Base.astro';
+import Icon from '~/components/Icon.astro';
+import { site } from '~/data/site';
+import { alternateUrls, path, useTranslations, type Locale } from '~/i18n/ui';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+const links = [
+  { label: t('nav.services'), href: path('services', locale) },
+  { label: t('cta.book'), href: path('book', locale) },
+  { label: t('nav.faq'), href: path('faq', locale) },
+  { label: t('nav.contact'), href: path('contact', locale) },
+];
+---
+
+<Base
+  title={t('404.title')}
+  description={t('404.lead')}
+  alternates={alternateUrls('home')}
+  noindex
+>
+  <section class="flex min-h-[70svh] items-center bg-ebony-50 py-24">
+    <div class="container-narrow">
+      <p class="font-display text-[5rem] leading-none text-gold-400">404</p>
+      <h1 class="mt-4 text-[2.4rem] leading-tight text-ebony-950 sm:text-[3rem]">{t('404.title')}</h1>
+      <p class="mt-5 max-w-xl text-[1.1rem] leading-[1.7] text-ebony-600">{t('404.lead')}</p>
+      <div class="rule-gold mt-8"></div>
+
+      <p class="mt-10 text-sm font-semibold text-ebony-700">{t('404.suggest')}</p>
+      <ul class="mt-4 flex flex-wrap gap-3">
+        {links.map((l) => (
+          <li>
+            <a href={l.href} class="btn-ghost !min-h-[44px] !px-5 !py-2.5 !text-sm">{l.label}</a>
+          </li>
+        ))}
+      </ul>
+
+      <a href={`tel:${site.phone}`} class="btn-primary mt-10">
+        <Icon name="phone" class="h-4 w-4" />
+        {site.phoneDisplay}
+      </a>
+    </div>
+  </section>
+</Base>

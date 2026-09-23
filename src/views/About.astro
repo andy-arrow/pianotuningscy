@@ -1,0 +1,149 @@
+---
+import { Image } from 'astro:assets';
+import Base from '~/layouts/Base.astro';
+import PageHeader from '~/components/PageHeader.astro';
+import CtaBand from '~/components/CtaBand.astro';
+import Icon from '~/components/Icon.astro';
+import { site } from '~/data/site';
+import { aboutPage } from '~/data/pageContent';
+import { alternateUrls, path, useTranslations, type Locale } from '~/i18n/ui';
+import { breadcrumbs } from '~/lib/schema';
+
+import portrait from '~/assets/images/kleanthis-steinway-factory.jpg';
+import stage from '~/assets/images/kleanthis-tuning-outdoor-stage.jpg';
+import steinway from '~/assets/images/steinway-concert-stage.jpg';
+import removal from '~/assets/images/piano-removal-seaside.jpg';
+import bosendorfer from '~/assets/images/kleanthis-tuning-bosendorfer.jpg';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const alternates = alternateUrls('about');
+const copy = aboutPage[locale];
+
+const trail = [
+  { name: t('nav.home'), url: path('home', locale) },
+  { name: t('about.title'), url: path('about', locale) },
+];
+
+const meta = {
+  en: {
+    title: 'About Kleanthis Christoforou | Piano Tunings Cy',
+    description:
+      'Piano Tunings Cy is Kleanthis Christoforou, a piano technician working across Cyprus since 2011 for families, schools, theatres and the Cyprus Symphony Orchestra.',
+  },
+  el: {
+    title: 'Σχετικά — Κλεάνθης Χριστοφόρου | Piano Tunings Cy',
+    description:
+      'Το Piano Tunings Cy είναι ο Κλεάνθης Χριστοφόρου, τεχνικός πιάνου σε όλη την Κύπρο από το 2011, για οικογένειες, σχολεία, θέατρα και τη Συμφωνική Ορχήστρα Κύπρου.',
+  },
+}[locale];
+
+const gallery = [
+  { src: bosendorfer, en: 'Tuning the pin block of a Bösendorfer grand piano', el: 'Κούρδισμα στο καρφόξυλο ενός πιάνου Bösendorfer' },
+  { src: stage, en: 'Tuning a grand piano on an outdoor stage in Cyprus', el: 'Κούρδισμα πιάνου με ουρά σε υπαίθρια σκηνή στην Κύπρο' },
+  { src: steinway, en: 'A Steinway & Sons concert grand prepared on stage', el: 'Ένα Steinway & Sons πιάνο συναυλιών έτοιμο στη σκηνή' },
+  { src: removal, en: 'A piano being moved to a seaside venue', el: 'Μεταφορά πιάνου σε παραθαλάσσιο χώρο' },
+];
+---
+
+<Base
+  title={meta.title}
+  description={meta.description}
+  alternates={alternates}
+  schema={[breadcrumbs(trail)]}
+>
+  <PageHeader
+    eyebrow={t('home.aboutEyebrow')}
+    title={site.technician.name}
+    lead={copy.lead}
+    locale={locale}
+    trail={trail}
+  />
+
+  <section class="bg-white py-16 lg:py-20">
+    <div class="container-x">
+      <div class="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-16">
+        <div class="lg:sticky lg:top-32 lg:self-start">
+          <Image
+            src={portrait}
+            alt={locale === 'el'
+              ? 'Ο Κλεάνθης Χριστοφόρου στο εργοστάσιο της Steinway & Sons'
+              : 'Kleanthis Christoforou at the Steinway & Sons factory'}
+            width={760}
+            height={760}
+            widths={[380, 760]}
+            sizes="(min-width: 1024px) 400px, 90vw"
+            loading="eager"
+            class="w-full rounded-sm object-cover"
+          />
+          <dl class="mt-7 divide-y divide-ebony-100 rounded-sm border border-ebony-200">
+            {
+              copy.credentials.map((c) => (
+                <div class="flex items-baseline justify-between gap-4 px-5 py-4">
+                  <dt class="text-[0.8rem] font-semibold uppercase tracking-[0.1em] text-ebony-500">
+                    {c.label}
+                  </dt>
+                  <dd class="text-right font-display text-[1.15rem] text-ebony-950">{c.value}</dd>
+                </div>
+              ))
+            }
+          </dl>
+
+          <div class="mt-6 flex flex-col gap-3">
+            <a href={`tel:${site.phone}`} data-analytics="about-call" class="btn-primary w-full">
+              <Icon name="phone" class="h-4 w-4" />
+              {site.phoneDisplay}
+            </a>
+            <a href={path('book', locale)} class="btn-ghost w-full">{t('cta.book')}</a>
+          </div>
+        </div>
+
+        <div class="space-y-14">
+          {
+            copy.sections.map((s) => (
+              <div data-reveal>
+                <h2 class="text-[1.75rem] leading-[1.2] text-ebony-950 sm:text-[2.1rem]">
+                  {s.heading}
+                </h2>
+                <div class="rule-gold mt-5" />
+                <div class="mt-6 space-y-5">
+                  {s.paras.map((p) => <p class="prose-body">{p}</p>)}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Work gallery -->
+  <section class="bg-ebony-50 py-20 lg:py-24">
+    <div class="container-x">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          gallery.map((g) => (
+            <figure data-reveal>
+              <Image
+                src={g.src}
+                alt={g[locale]}
+                width={800}
+                height={800}
+                widths={[400, 800]}
+                sizes="(min-width: 768px) 33vw, 92vw"
+                loading="lazy"
+                class="aspect-square w-full rounded-sm object-cover"
+              />
+              <figcaption class="mt-3 text-[0.875rem] leading-relaxed text-ebony-500">
+                {g[locale]}
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <CtaBand locale={locale} />
+</Base>

@@ -1,0 +1,38 @@
+---
+import Base from '~/layouts/Base.astro';
+import Icon from '~/components/Icon.astro';
+import { site } from '~/data/site';
+import { alternateUrls, path, useTranslations, type Locale } from '~/i18n/ui';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<Base
+  title={t('thanks.title')}
+  description={t('thanks.lead')}
+  alternates={alternateUrls('thanks')}
+  noindex
+>
+  <section class="flex min-h-[70svh] items-center bg-ebony-50 py-24">
+    <div class="container-narrow text-center">
+      <span class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-gold-600 text-white">
+        <Icon name="check" class="h-8 w-8" />
+      </span>
+      <h1 class="mt-8 text-[2.4rem] leading-tight text-ebony-950 sm:text-[3rem]">
+        {t('thanks.title')}
+      </h1>
+      <p class="mx-auto mt-5 max-w-xl text-[1.1rem] leading-[1.7] text-ebony-600">
+        {t('thanks.lead')}
+      </p>
+      <div class="mt-10 flex flex-col items-stretch justify-center gap-3 sm:flex-row">
+        <a href={`tel:${site.phone}`} class="btn-primary">
+          <Icon name="phone" class="h-4 w-4" />
+          {site.phoneDisplay}
+        </a>
+        <a href={path('home', locale)} class="btn-ghost">{t('thanks.back')}</a>
+      </div>
+    </div>
+  </section>
+</Base>

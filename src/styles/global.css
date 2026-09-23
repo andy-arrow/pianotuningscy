@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+/* index.css ships every subset with unicode-range, so Greek users download
+   Greek glyphs and Latin users never do. */
+@import "@fontsource-variable/eb-garamond/index.css";
+@import "@fontsource-variable/inter/index.css";
+
+/* ------------------------------------------------------------------
+   Piano Tunings Cy — design tokens
+   Brand gold #AE9962 is taken from the company's own banner artwork.
+   ------------------------------------------------------------------ */
+@theme {
+  --font-display: "EB Garamond Variable", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Brand gold */
+  --color-gold-50:  #faf7f0;
+  --color-gold-100: #f2ecdc;
+  --color-gold-200: #e5d8ba;
+  --color-gold-300: #d4be8e;
+  --color-gold-400: #c2a572;
+  --color-gold-500: #ae9962;  /* brand */
+  --color-gold-600: #967f4f;
+  --color-gold-700: #7a6642;
+  --color-gold-800: #5f4f36;
+  --color-gold-900: #43391f;
+
+  /* Ebony — the piano-black neutral ramp */
+  --color-ebony-50:  #f7f7f6;
+  --color-ebony-100: #eeedeb;
+  --color-ebony-200: #d8d6d2;
+  --color-ebony-300: #b6b2ab;
+  --color-ebony-400: #8b867d;
+  --color-ebony-500: #6d6860;
+  --color-ebony-600: #56524c;
+  --color-ebony-700: #46433e;
+  --color-ebony-800: #2b2926;
+  --color-ebony-900: #1a1917;
+  --color-ebony-950: #0e0e0d;
+
+  /* Header breakpoints in `em`, not px: a media query's em tracks the user's
+     browser font-size setting, so raising it collapses the header to the
+     hamburger rather than pushing it off-screen. 64em/40em = 1024px/640px at
+     the default 16px. */
+  --breakpoint-hdr: 64em;
+  --breakpoint-tel: 40em;
+
+  --radius-card: 0.25rem;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- base ---------- */
+@layer base {
+  :root {
+    --bg: var(--color-ebony-50);
+    --fg: var(--color-ebony-900);
+    --muted: var(--color-ebony-600);
+    --surface: #ffffff;
+    --border: var(--color-ebony-200);
+    --accent: var(--color-gold-600);
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 6rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  html, body { max-width: 100%; overflow-x: clip; }
+
+  /* Long unbroken strings (emails, URLs) break instead of widening the page. */
+  p, li, dd, dt, h1, h2, h3, h4, a, span, figcaption { overflow-wrap: break-word; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+
+  /* Visible, high-contrast focus for keyboard users (WCAG 2.2 AA) */
+  :focus-visible {
+    outline: 3px solid var(--color-gold-600);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection { background: var(--color-gold-200); color: var(--color-ebony-900); }
+
+  /* Greek copy sits a touch larger — Greek lowercase runs optically smaller */
+  :lang(el) body { font-size: 1.0125rem; }
+}
+
+/* Tailwind 4: a class that other rules @apply must be declared as a @utility. */
+@utility card {
+  border-radius: 0.125rem;
+  border: 1px solid var(--color-ebony-200);
+  background-color: #fff;
+  transition: all 300ms;
+}
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.125rem;
+  padding: 0.875rem 1.5rem;
+  min-height: 48px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  transition: all 200ms;
+}
+
+@layer components {
+  .container-x { @apply mx-auto w-full max-w-6xl px-5 sm:px-8; }
+  .container-narrow { @apply mx-auto w-full max-w-3xl px-5 sm:px-8; }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-gold-700;
+  }
+
+  .btn-primary {
+    @apply btn bg-gold-600 text-white shadow-sm hover:bg-gold-700 hover:shadow-md active:bg-gold-800;
+  }
+  .btn-dark {
+    @apply btn bg-ebony-900 text-white hover:bg-ebony-800;
+  }
+  .btn-ghost {
+    @apply btn border border-ebony-300 bg-transparent text-ebony-900
+           hover:border-ebony-900 hover:bg-ebony-900 hover:text-white;
+  }
+  .btn-on-dark {
+    @apply btn border border-white/35 bg-white/5 text-white backdrop-blur-sm
+           hover:bg-white hover:text-ebony-900;
+  }
+
+  .prose-body {
+    @apply text-[1.0625rem] leading-[1.75] text-ebony-700;
+  }
+  .link-underline {
+    @apply underline decoration-gold-500/50 underline-offset-4
+           transition-colors hover:decoration-gold-700;
+  }
+  .card-hover {
+    @apply card hover:border-gold-400 hover:shadow-[0_8px_30px_-12px_rgb(0_0_0/0.18)];
+  }
+  .rule-gold { @apply h-px w-12 bg-gold-500; }
+}
+
+/* ------------------------------------------------------------------
+   Header over a full-bleed hero.
+   One `.is-solid` class drives every colour change, so the JS only ever
+   toggles a class and CSS owns the appearance.
+   ------------------------------------------------------------------ */
+[data-header][data-transparent="true"] {
+  background-color: transparent;
+  border-color: rgb(255 255 255 / 0.12);
+}
+[data-header][data-transparent="true"] [data-logo] { filter: brightness(0) invert(1); }
+[data-header][data-transparent="true"] [data-header-link] { color: rgb(255 255 255 / 0.85); }
+[data-header][data-transparent="true"] [data-header-link]:hover { color: #fff; }
+[data-header][data-transparent="true"] [data-langswitch] { border-color: rgb(255 255 255 / 0.25); }
+[data-header][data-transparent="true"] [data-lang-inactive] { color: rgb(255 255 255 / 0.7); }
+[data-header][data-transparent="true"] [data-lang-inactive]:hover { color: #fff; }
+
+[data-header][data-transparent="true"].is-solid {
+  background-color: rgb(255 255 255 / 0.95);
+  backdrop-filter: blur(12px);
+  border-color: var(--color-ebony-200);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+}
+[data-header][data-transparent="true"].is-solid [data-logo] { filter: none; }
+[data-header][data-transparent="true"].is-solid [data-header-link] { color: var(--color-ebony-700); }
+[data-header][data-transparent="true"].is-solid [data-header-link]:hover { color: var(--color-ebony-950); }
+[data-header][data-transparent="true"].is-solid [data-langswitch] { border-color: var(--color-ebony-200); }
+[data-header][data-transparent="true"].is-solid [data-lang-inactive] { color: var(--color-ebony-500); }
+[data-header][data-transparent="true"].is-solid [data-lang-inactive]:hover { color: var(--color-ebony-900); }
+[data-header] [data-logo] { transition: filter 300ms; }
+
+/* Skip link */
+.skip-link {
+  @apply absolute left-4 z-[100] -translate-y-24 rounded-sm bg-ebony-900 px-4 py-3
+         text-sm font-semibold text-white transition-transform focus:translate-y-4;
+}
+
+/* Reveal-on-scroll.
+   Gated on `html.js`, which an inline head script sets. Without JavaScript — or if
+   that script never runs — nothing is ever hidden, so the page can't render blank. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js [data-reveal] { opacity: 0; transform: translateY(14px); }
+  html.js [data-reveal].is-in {
+    opacity: 1; transform: none;
+    transition: opacity 0.7s var(--ease-out-soft), transform 0.7s var(--ease-out-soft);
+  }
+}

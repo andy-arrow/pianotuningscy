@@ -1,0 +1,27 @@
+---
+import Breadcrumbs from '~/components/Breadcrumbs.astro';
+import type { Locale } from '~/i18n/ui';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lead?: string;
+  locale: Locale;
+  trail: { name: string; url: string }[];
+}
+const { eyebrow, title, lead, locale, trail } = Astro.props;
+---
+
+<div class="border-b border-ebony-200 bg-white">
+  <Breadcrumbs trail={trail} locale={locale} />
+  <div class="container-x pb-16 pt-8 lg:pb-20 lg:pt-10">
+    <div class="max-w-3xl">
+      {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+      <h1 class="mt-4 text-[2.4rem] leading-[1.08] text-ebony-950 sm:text-[3rem] lg:text-[3.5rem]">
+        {title}
+      </h1>
+      {lead && <p class="mt-6 text-[1.15rem] leading-[1.7] text-ebony-600">{lead}</p>}
+      <div class="rule-gold mt-8"></div>
+    </div>
+  </div>
+</div>

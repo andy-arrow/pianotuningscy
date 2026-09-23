@@ -1,0 +1,199 @@
+---
+import Base from '~/layouts/Base.astro';
+import PageHeader from '~/components/PageHeader.astro';
+import EnquiryForm from '~/components/EnquiryForm.astro';
+import Icon from '~/components/Icon.astro';
+import { site, serviceAreas } from '~/data/site';
+import { alternateUrls, path, useTranslations, type Locale } from '~/i18n/ui';
+import { breadcrumbs } from '~/lib/schema';
+
+interface Props { locale: Locale; variant?: 'contact' | 'booking' }
+const { locale, variant = 'contact' } = Astro.props;
+const t = useTranslations(locale);
+
+const routeKey = variant === 'booking' ? 'book' : 'contact';
+const alternates = alternateUrls(routeKey);
+const titleKey = variant === 'booking' ? 'book.title' : 'contact.title';
+const leadKey = variant === 'booking' ? 'book.lead' : 'contact.lead';
+
+const trail = [
+  { name: t('nav.home'), url: path('home', locale) },
+  { name: t(titleKey), url: path(routeKey, locale) },
+];
+
+const meta = {
+  contact: {
+    en: {
+      title: 'Contact — Piano Tunings Cy',
+      description:
+        'Call +357 99 405612, send a WhatsApp message or use the form. Piano tuning, repair, restoration and moving across Cyprus, answered personally.',
+    },
+    el: {
+      title: 'Επικοινωνία — Piano Tunings Cy',
+      description:
+        'Καλέστε στο +357 99 405612, στείλτε μήνυμα WhatsApp ή χρησιμοποιήστε τη φόρμα. Κούρδισμα, επισκευή, ανακαίνιση και μεταφορά πιάνου σε όλη την Κύπρο.',
+    },
+  },
+  booking: {
+    en: {
+      title: 'Book a Piano Tuning in Cyprus — Piano Tunings Cy',
+      description:
+        'Book a piano tuning, repair, evaluation, move or grand piano rental anywhere in Cyprus. Tell us about your piano and get the next available appointments.',
+    },
+    el: {
+      title: 'Κλείστε Κούρδισμα Πιάνου στην Κύπρο — Piano Tunings Cy',
+      description:
+        'Κλείστε κούρδισμα, επισκευή, εκτίμηση, μεταφορά ή ενοικίαση πιάνου οπουδήποτε στην Κύπρο. Πείτε μας για το πιάνο σας και δείτε τα επόμενα διαθέσιμα ραντεβού.',
+    },
+  },
+}[variant][locale];
+
+const contactMethods = [
+  {
+    icon: 'phone' as const,
+    label: t('cta.callNow'),
+    value: site.phoneDisplay,
+    href: `tel:${site.phone}`,
+    analytics: 'contact-call',
+    primary: true,
+    external: false,
+  },
+  {
+    icon: 'whatsapp' as const,
+    label: 'WhatsApp',
+    value: site.phoneDisplay,
+    href: `https://wa.me/${site.whatsapp}`,
+    analytics: 'contact-whatsapp',
+    primary: false,
+    external: true,
+  },
+  {
+    icon: 'email' as const,
+    label: t('label.email'),
+    value: site.email,
+    href: `mailto:${site.email}`,
+    analytics: 'contact-email',
+    primary: false,
+    external: false,
+  },
+];
+---
+
+<Base
+  title={meta.title}
+  description={meta.description}
+  alternates={alternates}
+  schema={[breadcrumbs(trail)]}
+>
+  <PageHeader
+    eyebrow={variant === 'booking' ? t('cta.book') : t('nav.contact')}
+    title={t(titleKey)}
+    lead={t(leadKey)}
+    locale={locale}
+    trail={trail}
+  />
+
+  <section class="bg-ebony-50 py-16 lg:py-20">
+    <div class="container-x">
+      <div class="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-14">
+        <!-- Form -->
+        <div class="rounded-sm border border-ebony-200 bg-white p-6 sm:p-9">
+          <h2 class="text-[1.6rem] text-ebony-950 sm:text-[1.85rem]">
+            {variant === 'booking' ? t('book.title') : t('contact.formTitle')}
+          </h2>
+          <div class="rule-gold mt-5 mb-8"></div>
+          <EnquiryForm locale={locale} variant={variant} />
+          {
+            variant === 'booking' && (
+              <p class="mt-6 border-t border-ebony-100 pt-5 text-[0.875rem] leading-relaxed text-ebony-500">
+                {t('book.note')}
+              </p>
+            )
+          }
+        </div>
+
+        <!-- Direct contact -->
+        <div class="lg:sticky lg:top-32 lg:self-start">
+          <div class="rounded-sm border border-ebony-200 bg-white p-6 sm:p-8">
+            <h2 class="text-[1.4rem] text-ebony-950">{t('contact.fastestTitle')}</h2>
+            <p class="prose-body mt-3 !text-[0.95rem]">{t('contact.fastestLead')}</p>
+
+            <ul class="mt-7 space-y-3">
+              {
+                contactMethods.map((m) => (
+                  <li>
+                    <a
+                      href={m.href}
+                      data-analytics={m.analytics}
+                      target={m.external ? '_blank' : undefined}
+                      rel={m.external ? 'noopener noreferrer' : undefined}
+                      class:list={[
+                        'group flex min-h-[64px] items-center gap-4 rounded-sm border px-5 py-4 transition-colors',
+                        m.primary
+                          ? 'border-gold-600 bg-gold-600 text-white hover:bg-gold-700'
+                          : 'border-ebony-200 hover:border-gold-500 hover:bg-gold-50/50',
+                      ]}
+                    >
+                      <Icon
+                        name={m.icon}
+                        class:list={['h-5 w-5 shrink-0', m.primary ? 'text-white' : 'text-gold-600']}
+                      />
+                      <span class="min-w-0">
+                        <span
+                          class:list={[
+                            'block text-[0.75rem] font-semibold uppercase tracking-[0.12em]',
+                            m.primary ? 'text-white/75' : 'text-ebony-400',
+                          ]}
+                        >
+                          {m.label}
+                        </span>
+                        <span
+                          class:list={[
+                            'mt-0.5 block truncate font-medium',
+                            m.primary ? 'text-white' : 'text-ebony-900',
+                          ]}
+                        >
+                          {m.value}
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+
+            <div class="mt-8 border-t border-ebony-100 pt-6">
+              <h3 class="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-ebony-500">
+                {t('label.hours')}
+              </h3>
+              <dl class="mt-4 space-y-2 text-[0.925rem] text-ebony-700">
+                <div class="flex justify-between gap-4">
+                  <dt>{t('label.monFri')}</dt><dd class="tabular-nums">08:00 – 19:00</dd>
+                </div>
+                <div class="flex justify-between gap-4">
+                  <dt>{t('label.sat')}</dt><dd class="tabular-nums">09:00 – 15:00</dd>
+                </div>
+                <div class="flex justify-between gap-4 text-ebony-400">
+                  <dt>{t('label.sun')}</dt><dd>{t('label.closed')}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="mt-8 border-t border-ebony-100 pt-6">
+              <h3 class="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-ebony-500">
+                {t('label.serviceArea')}
+              </h3>
+              <p class="mt-3 flex items-start gap-2.5 text-[0.925rem] leading-relaxed text-ebony-700">
+                <Icon name="pin" class="mt-0.5 h-4 w-4 shrink-0 text-gold-600" />
+                <span>
+                  {serviceAreas.map((a) => a[locale]).join(' · ')}
+                  <span class="mt-1 block text-ebony-500">{t('label.allCyprus')}</span>
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

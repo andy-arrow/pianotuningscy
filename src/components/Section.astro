@@ -1,0 +1,56 @@
+---
+interface Props {
+  eyebrow?: string;
+  title?: string;
+  lead?: string;
+  /** Visual treatment. */
+  tone?: 'light' | 'cream' | 'dark';
+  align?: 'left' | 'center';
+  id?: string;
+  class?: string;
+  /** Renders the heading as h1 on pages where this is the page title. */
+  as?: 'h1' | 'h2';
+}
+const {
+  eyebrow, title, lead, tone = 'light', align = 'left', id,
+  class: className = '', as: Heading = 'h2',
+} = Astro.props;
+
+const toneClass = {
+  light: 'bg-ebony-50',
+  cream: 'bg-gold-50/60',
+  dark: 'bg-ebony-950 text-ebony-200',
+}[tone];
+---
+
+<section id={id} class:list={['py-20 lg:py-28', toneClass, className]}>
+  <div class="container-x">
+    {
+      (eyebrow || title || lead) && (
+        <div class:list={['max-w-2xl', align === 'center' && 'mx-auto text-center']} data-reveal>
+          {eyebrow && <p class:list={['eyebrow', tone === 'dark' && '!text-gold-500']}>{eyebrow}</p>}
+          {title && (
+            <Heading
+              class:list={[
+                'mt-4 text-[2.1rem] leading-[1.12] sm:text-[2.6rem] lg:text-[3rem]',
+                tone === 'dark' ? 'text-white' : 'text-ebony-950',
+              ]}
+            >
+              {title}
+            </Heading>
+          )}
+          {lead && (
+            <p class:list={[
+              'mt-5 text-[1.1rem] leading-[1.7]',
+              tone === 'dark' ? 'text-ebony-300' : 'text-ebony-600',
+            ]}>
+              {lead}
+            </p>
+          )}
+          <div class:list={['rule-gold mt-8', align === 'center' && 'mx-auto']} />
+        </div>
+      )
+    }
+    <slot />
+  </div>
+</section>
