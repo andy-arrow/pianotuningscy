@@ -105,13 +105,14 @@ export const aboutPage: L<{
       {
         heading: 'Working across the whole island',
         paras: [
-          'The work covers the whole island — Nicosia, Limassol, Larnaca, Paphos and the Famagusta district every week, and the villages in between. Travel is normally folded into the price rather than added to it.',
+          'Based in Limassol, working weekly in Nicosia, Larnaca, Paphos and the Famagusta district, and in the villages in between. Travel is normally folded into the price rather than added to it.',
           'Both Greek and English are spoken, and you will get the same clear explanation of what your piano needs in either one.',
         ],
       },
     ],
     credentials: [
       { label: 'Trading since', value: '2011' },
+      { label: 'Based in', value: 'Limassol' },
       { label: 'Service area', value: 'All of Cyprus' },
       { label: 'Languages', value: 'Greek, English' },
     ],
@@ -143,13 +144,14 @@ export const aboutPage: L<{
       {
         heading: 'Σε ολόκληρο το νησί',
         paras: [
-          'Η δουλειά καλύπτει ολόκληρο το νησί — Λευκωσία, Λεμεσό, Λάρνακα, Πάφο και την επαρχία Αμμοχώστου κάθε εβδομάδα, και τα χωριά ενδιάμεσα. Η μετάβαση κανονικά ενσωματώνεται στην τιμή αντί να προστίθεται.',
+          'Με έδρα τη Λεμεσό, με εβδομαδιαία παρουσία σε Λευκωσία, Λάρνακα, Πάφο και στην επαρχία Αμμοχώστου, και στα χωριά ενδιάμεσα. Η μετάβαση κανονικά ενσωματώνεται στην τιμή αντί να προστίθεται.',
           'Μιλάμε ελληνικά και αγγλικά, και θα λάβετε την ίδια καθαρή εξήγηση για το τι χρειάζεται το πιάνο σας και στις δύο γλώσσες.',
         ],
       },
     ],
     credentials: [
       { label: 'Σε λειτουργία από', value: '2011' },
+      { label: 'Έδρα', value: 'Λεμεσός' },
       { label: 'Περιοχή εξυπηρέτησης', value: 'Όλη η Κύπρος' },
       { label: 'Γλώσσες', value: 'Ελληνικά, Αγγλικά' },
     ],

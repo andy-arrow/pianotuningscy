@@ -100,7 +100,7 @@ const jsonLd = graph([
 
     <meta name="author" content={site.technician.name} />
     <meta name="geo.region" content="CY" />
-    <meta name="geo.placename" content={site.address.locality} />
+    <meta name="geo.placename" content={site.address.localityEn} />
 
     <script type="application/ld+json" set:html={jsonLd} is:inline />
 

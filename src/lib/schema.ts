@@ -12,7 +12,7 @@ const PERSON_ID = `${site.url}/#kleanthis`;
 
 /**
  * The core LocalBusiness node. This is what lets Google understand that a piano
- * technician in Nicosia serves the whole island — the legacy site had none of it.
+ * technician in Limassol serves the whole island — the legacy site had none of it.
  */
 export function localBusiness(locale: Locale) {
   return {
@@ -31,8 +31,8 @@ export function localBusiness(locale: Locale) {
     paymentAccepted: 'Cash, Bank transfer',
     address: {
       '@type': 'PostalAddress',
-      addressLocality: site.address.locality,
-      addressRegion: site.address.region,
+      addressLocality: site.address.locality[locale],
+      addressRegion: site.address.region[locale],
       addressCountry: site.address.country,
     },
     geo: { '@type': 'GeoCoordinates', latitude: site.geo.lat, longitude: site.geo.lng },
@@ -54,7 +54,7 @@ export function localBusiness(locale: Locale) {
     })),
     founder: { '@id': PERSON_ID },
     employee: { '@id': PERSON_ID },
-    sameAs: [site.social.facebook, site.social.instagram],
+    sameAs: [site.social.facebook, site.social.instagram, site.social.tiktok],
     knowsLanguage: ['en', 'el'],
     hasOfferCatalog: {
       '@type': 'OfferCatalog',

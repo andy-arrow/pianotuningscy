@@ -38,8 +38,8 @@ export const faqs: Faq[] = [
     topics: ['general'],
     q: { en: 'Which areas of Cyprus do you cover?', el: 'Ποιες περιοχές της Κύπρου καλύπτετε;' },
     a: {
-      en: 'The whole island. We work regularly in Nicosia, Limassol, Larnaca, Paphos and the Famagusta district, as well as the villages in between. Travel is usually folded into the price rather than charged separately — ask when you book.',
-      el: 'Ολόκληρο το νησί. Εργαζόμαστε τακτικά σε Λευκωσία, Λεμεσό, Λάρνακα, Πάφο και στην επαρχία Αμμοχώστου, καθώς και στα χωριά ενδιάμεσα. Η μετάβαση συνήθως ενσωματώνεται στην τιμή αντί να χρεώνεται ξεχωριστά — ρωτήστε μας κατά την κράτηση.',
+      en: 'The whole island. We are based in Limassol and work regularly in Nicosia, Larnaca, Paphos and the Famagusta district, as well as the villages in between. Travel is usually folded into the price rather than charged separately — ask when you book.',
+      el: 'Ολόκληρο το νησί. Εδρεύουμε στη Λεμεσό και εργαζόμαστε τακτικά σε Λευκωσία, Λάρνακα, Πάφο και στην επαρχία Αμμοχώστου, καθώς και στα χωριά ενδιάμεσα. Η μετάβαση συνήθως ενσωματώνεται στην τιμή αντί να χρεώνεται ξεχωριστά — ρωτήστε μας κατά την κράτηση.',
     },
   },
   {

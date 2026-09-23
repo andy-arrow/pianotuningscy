@@ -23,17 +23,27 @@ const year = new Date().getFullYear();
         <p class="mt-5 max-w-xs text-[0.95rem] leading-relaxed text-ebony-400">
           {t('footer.tagline')}
         </p>
-        <nav class="mt-6 flex gap-2" aria-label={t('a11y.socialNav')}>
-          <a
-            href={site.social.facebook} target="_blank" rel="noopener noreferrer"
-            class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-ebony-700 text-ebony-300 transition-colors hover:border-gold-500 hover:text-gold-400"
-            aria-label={`Facebook (${t('a11y.newTab')})`}
-          ><Icon name="facebook" class="h-[18px] w-[18px]" /></a>
-          <a
-            href={site.social.instagram} target="_blank" rel="noopener noreferrer"
-            class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-ebony-700 text-ebony-300 transition-colors hover:border-gold-500 hover:text-gold-400"
-            aria-label={`Instagram (${t('a11y.newTab')})`}
-          ><Icon name="instagram" class="h-[18px] w-[18px]" /></a>
+        <nav class="mt-6 flex flex-wrap gap-2" aria-label={t('a11y.socialNav')}>
+          {
+            (
+              [
+                ['facebook', 'Facebook', site.social.facebook],
+                ['instagram', 'Instagram', site.social.instagram],
+                ['tiktok', 'TikTok', site.social.tiktok],
+              ] as const
+            ).map(([icon, label, href]) => (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-analytics={`footer-${icon}`}
+                class="inline-flex h-11 w-11 items-center justify-center rounded-sm border border-ebony-700 text-ebony-300 transition-colors hover:border-gold-500 hover:text-gold-400"
+                aria-label={`${label} (${t('a11y.newTab')})`}
+              >
+                <Icon name={icon} class="h-[18px] w-[18px]" />
+              </a>
+            ))
+          }
         </nav>
       </div>
 
@@ -111,7 +121,7 @@ const year = new Date().getFullYear();
           <li class="flex items-start gap-3 text-ebony-400">
             <Icon name="pin" class="mt-0.5 h-[18px] w-[18px] shrink-0 text-gold-500" />
             <span>
-              {site.address.locality}, {site.address.countryName[locale]}<br />
+              {site.address.locality[locale]}, {site.address.countryName[locale]}<br />
               <span class="text-ebony-500">{t('label.serviceArea')}: {t('label.allCyprus')}</span>
             </span>
           </li>

@@ -82,7 +82,7 @@ export const ui = {
     'home.areasEyebrow': 'Where we work',
     'home.areasTitle': 'Across the whole island',
     'home.areasLead':
-      'Working in every district of the island, week in and week out. Travel is normally included in the price.',
+      'Based in Limassol, working weekly in every district of the island. Travel is normally included in the price.',
     'home.ctaTitle': 'Ready when your piano is',
     'home.ctaLead':
       'Tell us what your piano needs — or simply that it has not been tuned in a while — and you will get a straight answer and a firm price.',
@@ -248,7 +248,7 @@ export const ui = {
     'home.areasEyebrow': 'Πού εργαζόμαστε',
     'home.areasTitle': 'Σε ολόκληρο το νησί',
     'home.areasLead':
-      'Με εβδομαδιαία παρουσία σε κάθε επαρχία του νησιού. Η μετάβαση κανονικά περιλαμβάνεται στην τιμή.',
+      'Με έδρα τη Λεμεσό και εβδομαδιαία παρουσία σε κάθε επαρχία του νησιού. Η μετάβαση κανονικά περιλαμβάνεται στην τιμή.',
     'home.ctaTitle': 'Έτοιμοι όταν είναι και το πιάνο σας',
     'home.ctaLead':
       'Πείτε μας τι χρειάζεται το πιάνο σας — ή απλώς ότι έχει καιρό να κουρδιστεί — και θα λάβετε ξεκάθαρη απάντηση και σταθερή τιμή.',

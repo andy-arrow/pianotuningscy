@@ -23,14 +23,16 @@ export const site = {
     // NEEDS-CONFIRMATION: street address. Omitted deliberately — publishing a wrong
     // address damages local SEO more than omitting it. The business is mobile/at-your-home,
     // so it is modelled as a service-area business.
-    locality: 'Nicosia',
-    region: 'Nicosia District',
+    locality: { en: 'Limassol', el: 'Λεμεσός' },
+    region: { en: 'Limassol District', el: 'Επαρχία Λεμεσού' },
+    /** Un-localised form for legacy geo meta tags. */
+    localityEn: 'Limassol',
     country: 'CY',
     countryName: { en: 'Cyprus', el: 'Κύπρος' },
   },
 
-  /** Approximate centre of Nicosia — used for geo markup on a service-area business. */
-  geo: { lat: 35.1856, lng: 33.3823 },
+  /** Approximate centre of Limassol — geo markup for a service-area business. */
+  geo: { lat: 34.7071, lng: 33.0226 },
 
   /** NEEDS-CONFIRMATION with the owner. Sensible default for a one-technician business. */
   hours: [
@@ -41,6 +43,7 @@ export const site = {
   social: {
     facebook: 'https://www.facebook.com/pianotuningscy',
     instagram: 'https://www.instagram.com/piano_tunings_cy/',
+    tiktok: 'https://www.tiktok.com/@pianotuningscy',
   },
 
   /** Analytics: set to a real ID to enable. Empty string = no tracking loaded at all. */

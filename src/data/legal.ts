@@ -27,7 +27,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
         {
           heading: 'Who we are',
           paras: [
-            'Piano Tunings Cy is a piano tuning, repair, restoration and transport business operated by Kleanthis Christoforou, based in Nicosia, Cyprus. For the purposes of the General Data Protection Regulation (EU) 2016/679, Piano Tunings Cy is the data controller for the personal data described here.',
+            'Piano Tunings Cy is a piano tuning, repair, restoration and transport business operated by Kleanthis Christoforou, based in Limassol, Cyprus. For the purposes of the General Data Protection Regulation (EU) 2016/679, Piano Tunings Cy is the data controller for the personal data described here.',
             'If you have any question about this policy or about the data we hold, contact us at info@pianotuningscy.com or on +357 99 405612.',
           ],
         },
@@ -78,7 +78,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
         {
           heading: 'Ποιοι είμαστε',
           paras: [
-            'Το Piano Tunings Cy είναι επιχείρηση κουρδίσματος, επισκευής, ανακαίνισης και μεταφοράς πιάνου, την οποία λειτουργεί ο Κλεάνθης Χριστοφόρου, με έδρα τη Λευκωσία. Για τους σκοπούς του Γενικού Κανονισμού Προστασίας Δεδομένων (ΕΕ) 2016/679, το Piano Tunings Cy είναι ο υπεύθυνος επεξεργασίας των προσωπικών δεδομένων που περιγράφονται εδώ.',
+            'Το Piano Tunings Cy είναι επιχείρηση κουρδίσματος, επισκευής, ανακαίνισης και μεταφοράς πιάνου, την οποία λειτουργεί ο Κλεάνθης Χριστοφόρου, με έδρα τη Λεμεσό. Για τους σκοπούς του Γενικού Κανονισμού Προστασίας Δεδομένων (ΕΕ) 2016/679, το Piano Tunings Cy είναι ο υπεύθυνος επεξεργασίας των προσωπικών δεδομένων που περιγράφονται εδώ.',
             'Για οποιαδήποτε ερώτηση σχετικά με την πολιτική αυτή ή με τα δεδομένα που τηρούμε, επικοινωνήστε στο info@pianotuningscy.com ή στο +357 99 405612.',
           ],
         },
