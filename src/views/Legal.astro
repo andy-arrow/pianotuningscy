@@ -22,6 +22,7 @@ const revised = new Date().toLocaleDateString(locale === 'el' ? 'el-CY' : 'en-GB
 ---
 
 <Base
+  locale={locale}
   title={`${d.title[locale]} | Piano Tunings Cy`}
   description={d.description[locale]}
   alternates={alternateUrls(doc)}

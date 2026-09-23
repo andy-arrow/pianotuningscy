@@ -412,7 +412,12 @@ export function alternateUrls(
   return { en: path(routeKey, 'en'), el: path(routeKey, 'el') };
 }
 
-/** Pull the locale out of an Astro URL pathname. */
+/**
+ * Pull the locale out of an Astro URL pathname.
+ * Strips the deployment base first — under GitHub Pages the path is
+ * `/repo/el/...`, which a naive `/el` check would read as English.
+ */
 export function localeFromUrl(url: URL): Locale {
-  return url.pathname.startsWith('/el') ? 'el' : 'en';
+  const p = BASE && url.pathname.startsWith(BASE) ? url.pathname.slice(BASE.length) : url.pathname;
+  return p === '/el' || p.startsWith('/el/') ? 'el' : 'en';
 }

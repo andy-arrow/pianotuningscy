@@ -20,6 +20,9 @@ interface Props {
   noindex?: boolean;
   /** Tightens the header against a full-bleed hero. */
   transparentHeader?: boolean;
+  /** Explicit locale. Views know it already; falling back to the URL is a
+      last resort and was wrong under a base path. */
+  locale?: Locale;
 }
 
 const {
@@ -30,9 +33,10 @@ const {
   ogImage,
   noindex = false,
   transparentHeader = false,
+  locale: localeProp,
 } = Astro.props;
 
-const locale = localeFromUrl(Astro.url) as Locale;
+const locale: Locale = localeProp ?? localeFromUrl(Astro.url);
 const t = useTranslations(locale);
 
 /** True only on review deploys. */

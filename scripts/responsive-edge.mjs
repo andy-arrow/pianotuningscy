@@ -14,7 +14,8 @@ import { readdirSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const BASE = process.argv[2] || 'http://localhost:4331';
-const DIST = 'dist';
+const DIST = process.env.AUDIT_DIST || 'dist';
+const URL_PREFIX = process.env.AUDIT_PREFIX || '';
 
 /**
  * `font` = browser default font size in px (what a user sets in browser
@@ -141,7 +142,7 @@ const run = async () => {
 
     for (const url of urls) {
       try {
-        await page.goto(BASE + url, { waitUntil: 'load', timeout: 30000 });
+        await page.goto(BASE + URL_PREFIX + url, { waitUntil: 'load', timeout: 30000 });
         if (c.cssZoom) {
           await page.evaluate((z) => {
             document.documentElement.style.fontSize = `${100 * z}%`;

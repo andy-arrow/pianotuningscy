@@ -16,7 +16,9 @@ import { readdirSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const BASE = process.argv[2] || 'http://localhost:4321';
-const DIST = 'dist';
+const DIST = process.env.AUDIT_DIST || 'dist';
+// When auditing a deployed preview, URLs need the deploy's base prefix.
+const URL_PREFIX = process.env.AUDIT_PREFIX || '';
 
 /** Widths from the smallest phone still in use to an ultrawide desktop. */
 const VIEWPORTS = [
@@ -191,7 +193,7 @@ const run = async () => {
     for (const url of urls) {
       checks++;
       try {
-        await page.goto(BASE + url, { waitUntil: 'load', timeout: 30000 });
+        await page.goto(BASE + URL_PREFIX + url, { waitUntil: 'load', timeout: 30000 });
         // Let fonts settle and the reveal sweep run.
         await page.waitForTimeout(160);
         // Scroll the whole page so sticky/lazy content is laid out, then return.
