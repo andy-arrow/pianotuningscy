@@ -14,3 +14,7 @@ dist/
 # names taken from the old site. Not for a public repository.
 AUDIT.md
 audit-findings.json
+
+# Review-deploy artefacts
+preview-dist/
+*.zip
