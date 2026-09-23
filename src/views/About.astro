@@ -13,7 +13,7 @@ import portrait from '~/assets/images/kleanthis-steinway-factory.jpg';
 import stage from '~/assets/images/kleanthis-tuning-outdoor-stage.jpg';
 import steinway from '~/assets/images/steinway-concert-stage.jpg';
 import removal from '~/assets/images/piano-removal-seaside.jpg';
-import bosendorfer from '~/assets/images/kleanthis-tuning-bosendorfer.jpg';
+import restringing from '~/assets/images/kleanthis-changing-strings-kawai.jpg';
 
 interface Props { locale: Locale }
 const { locale } = Astro.props;
@@ -40,7 +40,7 @@ const meta = {
 }[locale];
 
 const gallery = [
-  { src: bosendorfer, en: 'Tuning the pin block of a Bösendorfer grand piano', el: 'Κούρδισμα στο καρφόξυλο ενός πιάνου Bösendorfer' },
+  { src: restringing, en: 'Changing strings on a Kawai grand', el: 'Αλλαγή χορδών σε πιάνο με ουρά Kawai' },
   { src: stage, en: 'Tuning a grand piano on an outdoor stage in Cyprus', el: 'Κούρδισμα πιάνου με ουρά σε υπαίθρια σκηνή στην Κύπρο' },
   { src: steinway, en: 'A Steinway & Sons concert grand prepared on stage', el: 'Ένα Steinway & Sons πιάνο συναυλιών έτοιμο στη σκηνή' },
   { src: removal, en: 'A piano being moved to a seaside venue', el: 'Μεταφορά πιάνου σε παραθαλάσσιο χώρο' },

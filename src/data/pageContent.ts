@@ -14,7 +14,7 @@ export const homeAbout: L<{ title: string; paras: string[]; bullets: string[]; }
       'The same standard applies to all of them. A family piano that has not been touched in fifteen years gets the same attention as a concert instrument on the night of a performance.',
     ],
     bullets: [
-      'Tuning to A440 concert pitch',
+      'Tuning to concert pitch',
       'Repairs, regulation and voicing',
       'Full restorations and restringing',
       'Specialist moving, island-wide',
@@ -28,7 +28,7 @@ export const homeAbout: L<{ title: string; paras: string[]; bullets: string[]; }
       'Το ίδιο επίπεδο ισχύει για όλους. Ένα οικογενειακό πιάνο που δεν το άγγιξε κανείς δεκαπέντε χρόνια παίρνει την ίδια προσοχή με ένα όργανο συναυλίας το βράδυ της παράστασης.',
     ],
     bullets: [
-      'Κούρδισμα στο διαπασών A440',
+      'Κούρδισμα στο σωστό διαπασών',
       'Επισκευές, ρύθμιση και διαμόρφωση ήχου',
       'Πλήρεις ανακαινίσεις και αλλαγή χορδών',
       'Εξειδικευμένη μεταφορά, σε όλο το νησί',
@@ -105,14 +105,13 @@ export const aboutPage: L<{
       {
         heading: 'Working across the whole island',
         paras: [
-          'Based in Nicosia, working weekly in Limassol, Larnaca, Paphos and the Famagusta district, and in the villages in between. Travel is normally folded into the price rather than added to it.',
+          'The work covers the whole island — Nicosia, Limassol, Larnaca, Paphos and the Famagusta district every week, and the villages in between. Travel is normally folded into the price rather than added to it.',
           'Both Greek and English are spoken, and you will get the same clear explanation of what your piano needs in either one.',
         ],
       },
     ],
     credentials: [
       { label: 'Trading since', value: '2011' },
-      { label: 'Based in', value: 'Nicosia' },
       { label: 'Service area', value: 'All of Cyprus' },
       { label: 'Languages', value: 'Greek, English' },
     ],
@@ -144,14 +143,13 @@ export const aboutPage: L<{
       {
         heading: 'Σε ολόκληρο το νησί',
         paras: [
-          'Με έδρα τη Λευκωσία, με εβδομαδιαία παρουσία σε Λεμεσό, Λάρνακα, Πάφο και στην επαρχία Αμμοχώστου, και στα χωριά ενδιάμεσα. Η μετάβαση κανονικά ενσωματώνεται στην τιμή αντί να προστίθεται.',
+          'Η δουλειά καλύπτει ολόκληρο το νησί — Λευκωσία, Λεμεσό, Λάρνακα, Πάφο και την επαρχία Αμμοχώστου κάθε εβδομάδα, και τα χωριά ενδιάμεσα. Η μετάβαση κανονικά ενσωματώνεται στην τιμή αντί να προστίθεται.',
           'Μιλάμε ελληνικά και αγγλικά, και θα λάβετε την ίδια καθαρή εξήγηση για το τι χρειάζεται το πιάνο σας και στις δύο γλώσσες.',
         ],
       },
     ],
     credentials: [
       { label: 'Σε λειτουργία από', value: '2011' },
-      { label: 'Έδρα', value: 'Λευκωσία' },
       { label: 'Περιοχή εξυπηρέτησης', value: 'Όλη η Κύπρος' },
       { label: 'Γλώσσες', value: 'Ελληνικά, Αγγλικά' },
     ],

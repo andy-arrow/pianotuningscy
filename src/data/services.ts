@@ -50,14 +50,14 @@ export const services: Service[] = [
       metaDescription:
         'Professional piano tuning in Cyprus from €100. Concert-standard tuning for uprights and grands by Kleanthis Christoforou, technician since 2011.',
       summary:
-        'A full tuning to A440 concert pitch, with a fine regulation check of touch and tone while the instrument is open.',
+        'A full tuning to concert pitch, with a fine regulation check of touch and tone while the instrument is open.',
       body: [
         'A piano holds roughly 220 strings under about 18 tonnes of combined tension. That tension never stops moving — every change in temperature and humidity pulls the soundboard and the strings with it. This is why a piano drifts out of tune even when nobody plays it.',
-        'A tuning restores the instrument to A440 concert pitch and, just as importantly, rebuilds the relationships between the notes so that chords sit cleanly against each other across the whole compass. Whether your piano was last tuned three months or twenty years ago, it can be brought back.',
+        'A tuning restores the instrument to concert pitch and, just as importantly, rebuilds the relationships between the notes so that chords sit cleanly against each other across the whole compass. Whether your piano was last tuned three months or twenty years ago, it can be brought back.',
         'Every tuning includes a check of the action and the tone while the instrument is open. If something needs attention — a sluggish key, a buzzing damper, a hammer that has gone hard and brittle — you will hear about it before it becomes expensive.',
       ],
       includes: [
-        'Full tuning to A440 concert pitch',
+        'Full tuning to concert pitch',
         'Unison and octave refinement across all 88 notes',
         'Touch and tone inspection while the piano is open',
         'Pedal and damper function check',
@@ -73,14 +73,14 @@ export const services: Service[] = [
       metaDescription:
         'Επαγγελματικό κούρδισμα πιάνου στην Κύπρο από €100. Κούρδισμα επιπέδου συναυλίας για όρθια πιάνα και πιάνα με ουρά από τον Κλεάνθη Χριστοφόρου.',
       summary:
-        'Πλήρες κούρδισμα στο διαπασών A440, με έλεγχο του μηχανισμού και του ήχου όσο το όργανο είναι ανοιχτό.',
+        'Πλήρες κούρδισμα στο σωστό διαπασών, με έλεγχο του μηχανισμού και του ήχου όσο το όργανο είναι ανοιχτό.',
       body: [
         'Ένα πιάνο έχει περίπου 220 χορδές υπό συνολική τάση γύρω στους 18 τόνους. Αυτή η τάση δεν μένει ποτέ σταθερή — κάθε μεταβολή θερμοκρασίας και υγρασίας τραβά μαζί της την αρμονική και τις χορδές. Γι’ αυτό ένα πιάνο ξεκουρδίζεται ακόμη κι αν δεν το παίζει κανείς.',
-        'Το κούρδισμα επαναφέρει το όργανο στο διαπασών A440 και, εξίσου σημαντικά, αποκαθιστά τις σχέσεις ανάμεσα στις νότες ώστε οι συγχορδίες να κάθονται καθαρά σε όλη την έκταση. Είτε το πιάνο σας κουρδίστηκε τελευταία φορά πριν τρεις μήνες είτε πριν είκοσι χρόνια, μπορεί να επανέλθει.',
+        'Το κούρδισμα επαναφέρει το όργανο στο σωστό διαπασών και, εξίσου σημαντικά, αποκαθιστά τις σχέσεις ανάμεσα στις νότες ώστε οι συγχορδίες να κάθονται καθαρά σε όλη την έκταση. Είτε το πιάνο σας κουρδίστηκε τελευταία φορά πριν τρεις μήνες είτε πριν είκοσι χρόνια, μπορεί να επανέλθει.',
         'Κάθε κούρδισμα περιλαμβάνει έλεγχο του μηχανισμού και του ήχου όσο το όργανο είναι ανοιχτό. Αν κάτι χρειάζεται προσοχή — ένα πλήκτρο που κολλάει, ένας πνιγέας που βουίζει, ένα σφυράκι που έχει σκληρύνει — θα το μάθετε πριν γίνει ακριβό.',
       ],
       includes: [
-        'Πλήρες κούρδισμα στο διαπασών A440',
+        'Πλήρες κούρδισμα στο σωστό διαπασών',
         'Ρύθμιση ταυτοφωνιών και οκτάβων σε όλες τις 88 νότες',
         'Έλεγχος μηχανισμού και ήχου με το πιάνο ανοιχτό',
         'Έλεγχος λειτουργίας πεταλιών και πνιγέων',

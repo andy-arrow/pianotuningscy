@@ -29,8 +29,8 @@ export const faqs: Faq[] = [
     topics: ['general', 'piano-tuning'],
     q: { en: 'How much does a piano tuning cost?', el: 'Πόσο κοστίζει ένα κούρδισμα πιάνου;' },
     a: {
-      en: 'A standard tuning is €100 and takes about an hour and a half. That covers a full tuning to A440 concert pitch plus a check of the action and tone while the piano is open. If the instrument has drifted a long way below pitch it needs a pitch raise first, which is quoted before any work starts — you will never be surprised by the invoice.',
-      el: 'Το τυπικό κούρδισμα κοστίζει €100 και διαρκεί περίπου μιάμιση ώρα. Περιλαμβάνει πλήρες κούρδισμα στο διαπασών A440 και έλεγχο του μηχανισμού και του ήχου όσο το πιάνο είναι ανοιχτό. Αν το όργανο έχει πέσει πολύ χαμηλά τονικά, χρειάζεται πρώτα ανύψωση τόνου, η οποία κοστολογείται πριν ξεκινήσει οποιαδήποτε εργασία — δεν θα εκπλαγείτε ποτέ από το τιμολόγιο.',
+      en: 'A standard tuning is €100 and takes about an hour and a half. That covers a full tuning to concert pitch plus a check of the action and tone while the piano is open. If the instrument has drifted a long way below pitch it needs a pitch raise first, which is quoted before any work starts — you will never be surprised by the invoice.',
+      el: 'Το τυπικό κούρδισμα κοστίζει €100 και διαρκεί περίπου μιάμιση ώρα. Περιλαμβάνει πλήρες κούρδισμα στο σωστό διαπασών και έλεγχο του μηχανισμού και του ήχου όσο το πιάνο είναι ανοιχτό. Αν το όργανο έχει πέσει πολύ χαμηλά τονικά, χρειάζεται πρώτα ανύψωση τόνου, η οποία κοστολογείται πριν ξεκινήσει οποιαδήποτε εργασία — δεν θα εκπλαγείτε ποτέ από το τιμολόγιο.',
     },
   },
   {
@@ -38,8 +38,8 @@ export const faqs: Faq[] = [
     topics: ['general'],
     q: { en: 'Which areas of Cyprus do you cover?', el: 'Ποιες περιοχές της Κύπρου καλύπτετε;' },
     a: {
-      en: 'The whole island. We are based in Nicosia and work regularly in Limassol, Larnaca, Paphos and the Famagusta district, as well as villages in between. Travel outside Nicosia is usually folded into the price rather than charged separately — ask when you book.',
-      el: 'Ολόκληρο το νησί. Εδρεύουμε στη Λευκωσία και εργαζόμαστε τακτικά σε Λεμεσό, Λάρνακα, Πάφο και στην επαρχία Αμμοχώστου, καθώς και σε χωριά ενδιάμεσα. Η μετάβαση εκτός Λευκωσίας συνήθως ενσωματώνεται στην τιμή αντί να χρεώνεται ξεχωριστά — ρωτήστε μας κατά την κράτηση.',
+      en: 'The whole island. We work regularly in Nicosia, Limassol, Larnaca, Paphos and the Famagusta district, as well as the villages in between. Travel is usually folded into the price rather than charged separately — ask when you book.',
+      el: 'Ολόκληρο το νησί. Εργαζόμαστε τακτικά σε Λευκωσία, Λεμεσό, Λάρνακα, Πάφο και στην επαρχία Αμμοχώστου, καθώς και στα χωριά ενδιάμεσα. Η μετάβαση συνήθως ενσωματώνεται στην τιμή αντί να χρεώνεται ξεχωριστά — ρωτήστε μας κατά την κράτηση.',
     },
   },
   {

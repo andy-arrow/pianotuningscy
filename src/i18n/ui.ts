@@ -63,11 +63,9 @@ export const ui = {
     'home.heroEyebrow': 'Piano tuning, repair & removals — since 2011',
     'home.heroTitle': 'Your piano, at its best',
     'home.heroLead':
-      'Concert-standard tuning, repair, restoration and transport for every piano in Cyprus — from a family upright in Nicosia to a Steinway on a concert stage.',
+      'Concert-standard tuning, repair, restoration and transport for every piano in Cyprus — from a family upright to a Steinway on a concert stage.',
     'home.trustYears': 'years in Cyprus',
-    'home.trustPianos': 'pianos cared for',
     'home.trustIsland': 'island-wide',
-    'home.trustIslandSub': 'Nicosia to Paphos',
     'home.servicesEyebrow': 'What we do',
     'home.servicesTitle': 'Everything a piano needs, from one technician',
     'home.servicesLead':
@@ -84,7 +82,7 @@ export const ui = {
     'home.areasEyebrow': 'Where we work',
     'home.areasTitle': 'Across the whole island',
     'home.areasLead':
-      'Based in Nicosia, working weekly in every district. Travel is normally included in the price.',
+      'Working in every district of the island, week in and week out. Travel is normally included in the price.',
     'home.ctaTitle': 'Ready when your piano is',
     'home.ctaLead':
       'Tell us what your piano needs — or simply that it has not been tuned in a while — and you will get a straight answer and a firm price.',
@@ -231,11 +229,9 @@ export const ui = {
     'home.heroEyebrow': 'Κούρδισμα, επισκευή & μεταφορά πιάνου — από το 2011',
     'home.heroTitle': 'Το πιάνο σας, στα καλύτερά του',
     'home.heroLead':
-      'Κούρδισμα επιπέδου συναυλίας, επισκευή, ανακαίνιση και μεταφορά για κάθε πιάνο στην Κύπρο — από το οικογενειακό όρθιο πιάνο στη Λευκωσία μέχρι ένα Steinway σε σκηνή συναυλιών.',
+      'Κούρδισμα επιπέδου συναυλίας, επισκευή, ανακαίνιση και μεταφορά για κάθε πιάνο στην Κύπρο — από το οικογενειακό όρθιο πιάνο μέχρι ένα Steinway σε σκηνή συναυλιών.',
     'home.trustYears': 'χρόνια στην Κύπρο',
-    'home.trustPianos': 'πιάνα υπό φροντίδα',
     'home.trustIsland': 'σε όλο το νησί',
-    'home.trustIslandSub': 'Λευκωσία έως Πάφο',
     'home.servicesEyebrow': 'Τι κάνουμε',
     'home.servicesTitle': 'Ό,τι χρειάζεται ένα πιάνο, από έναν τεχνικό',
     'home.servicesLead':
@@ -252,7 +248,7 @@ export const ui = {
     'home.areasEyebrow': 'Πού εργαζόμαστε',
     'home.areasTitle': 'Σε ολόκληρο το νησί',
     'home.areasLead':
-      'Με έδρα τη Λευκωσία, με εβδομαδιαία παρουσία σε κάθε επαρχία. Η μετάβαση κανονικά περιλαμβάνεται στην τιμή.',
+      'Με εβδομαδιαία παρουσία σε κάθε επαρχία του νησιού. Η μετάβαση κανονικά περιλαμβάνεται στην τιμή.',
     'home.ctaTitle': 'Έτοιμοι όταν είναι και το πιάνο σας',
     'home.ctaLead':
       'Πείτε μας τι χρειάζεται το πιάνο σας — ή απλώς ότι έχει καιρό να κουρδιστεί — και θα λάβετε ξεκάθαρη απάντηση και σταθερή τιμή.',
