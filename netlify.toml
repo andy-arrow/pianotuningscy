@@ -16,7 +16,12 @@
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), interest-cohort=()"
-    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    # Deliberately short to begin with. `includeSubDomains` would cover
+    # ftp.pianotuningscy.com, which currently serves no valid HTTPS, and
+    # `preload` is effectively irreversible. After the site has run correctly
+    # for a week or two AND every subdomain you use serves HTTPS, raise this to
+    # "max-age=63072000; includeSubDomains" and only then consider preload.
+    Strict-Transport-Security = "max-age=300"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://plausible.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://plausible.io; form-action 'self' https://plausible.io; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
 
 # Fingerprinted build assets are immutable.

@@ -64,7 +64,13 @@ export const site = {
    */
   forms: {
     endpoint: '',
-    netlifyName: 'enquiry',
+    /**
+     * One name per form SHAPE. Netlify keys submissions by form name and shows
+     * the field schema from the most recent deploy of that name — so a contact
+     * form and a booking form (which adds piano-type and last-tuned) must not
+     * share one, or booking answers stop appearing in the dashboard.
+     */
+    netlifyName: { contact: 'enquiry-contact', booking: 'enquiry-booking' },
   },
 
   currency: 'EUR',

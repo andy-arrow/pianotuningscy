@@ -18,6 +18,7 @@ const { locale, variant = 'contact' } = Astro.props;
 const t = useTranslations(locale);
 
 const isPreview = import.meta.env.PUBLIC_PREVIEW === 'true';
+const formName = site.forms.netlifyName[variant];
 const action = site.forms.endpoint || path('thanks', locale);
 const lastTuned = t('form.lastTunedOptions').split('|');
 const fieldBase =
@@ -28,7 +29,7 @@ const fieldBase =
 
 <form
   data-enquiry-form
-  name={site.forms.netlifyName}
+  name={formName}
   method="POST"
   action={action}
   data-netlify="true"
@@ -36,7 +37,7 @@ const fieldBase =
   class="space-y-5"
   novalidate
 >
-  <input type="hidden" name="form-name" value={site.forms.netlifyName} />
+  <input type="hidden" name="form-name" value={formName} />
   <input type="hidden" name="locale" value={locale} />
   <input type="hidden" name="source-page" value={Astro.url.pathname} />
 
