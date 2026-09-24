@@ -36,23 +36,47 @@ export function replyLanguage(lastUserMessage: string, locale: 'en' | 'el'): 'en
   return locale;
 }
 
-const OTHER_SCRIPTS = [
-  'Cyrillic', 'Arabic', 'Hebrew', 'Armenian', 'Georgian', 'Devanagari', 'Bengali', 'Thai',
-  'Han', 'Hiragana', 'Katakana', 'Hangul',
-];
-
 /**
  * Small models occasionally emit a stray glyph from an unrelated writing
  * system mid-word (seen in testing: Devanagari inside a Greek greeting).
- * Latin, Greek and shared symbols are always allowed; any other script only
- * if the visitor used it, so a Russian question still gets a Russian answer.
+ * Latin, Greek, punctuation, symbols and emoji are always allowed; another
+ * script only if the conversation already uses it, so a Russian question
+ * still gets a Russian answer.
+ *
+ * Plain code-point ranges, not \p{Script=…}: Unicode-property classes are
+ * costly for V8 to compile, and the Free plan allows 10 ms of CPU a request.
  */
-export function strayScriptPattern(lastUserMessage: string): RegExp {
-  const allowed = ['Latin', 'Greek', 'Common', 'Inherited'];
-  for (const sc of OTHER_SCRIPTS) {
-    if (new RegExp(`\\p{Script=${sc}}`, 'u').test(lastUserMessage)) allowed.push(sc);
+const ALWAYS =
+  '\\u0000-\\u036F' + // Latin (with extensions), IPA, spacing and combining marks
+  '\\u0370-\\u03FF\\u1F00-\\u1FFF' + // Greek and polytonic Greek
+  '\\u1D00-\\u1EFF' + // phonetic extensions, Latin Extended Additional
+  '\\u2000-\\u2BFF\\u2E00-\\u2E7F' + // punctuation, currency, arrows, maths, symbols
+  '\\uFE00-\\uFE0F' + // variation selectors (emoji presentation)
+  '\\uD800-\\uDFFF'; // astral planes as surrogates: emoji
+const OTHER_SCRIPTS: Record<string, string> = {
+  Cyrillic: '\\u0400-\\u052F',
+  Armenian: '\\u0530-\\u058F',
+  Hebrew: '\\u0590-\\u05FF',
+  Arabic: '\\u0600-\\u06FF\\u0750-\\u077F',
+  Indic: '\\u0900-\\u0DFF',
+  Thai: '\\u0E00-\\u0E7F',
+  Georgian: '\\u10A0-\\u10FF',
+  CJK: '\\u3000-\\u30FF\\u3400-\\u4DBF\\u4E00-\\u9FFF\\uFF00-\\uFFEF',
+  Hangul: '\\u1100-\\u11FF\\uAC00-\\uD7AF',
+};
+const SCRIPT_TESTS = Object.entries(OTHER_SCRIPTS).map(([name, range]) => [name, new RegExp(`[${range}]`)] as const);
+const strayCache = new Map<string, RegExp>();
+
+export function strayScriptPattern(text: string): RegExp {
+  const used = SCRIPT_TESTS.filter(([, re]) => re.test(text)).map(([name]) => name);
+  const key = used.join();
+  let re = strayCache.get(key);
+  if (!re) {
+    re = new RegExp(`[^${ALWAYS}${used.map((n) => OTHER_SCRIPTS[n]).join('')}]`, 'g');
+    strayCache.set(key, re);
   }
-  return new RegExp(`[^${allowed.map((sc) => `\\p{Script=${sc}}`).join('')}]`, 'gu');
+  re.lastIndex = 0;
+  return re;
 }
 
 /**
@@ -63,17 +87,40 @@ export function strayScriptPattern(lastUserMessage: string): RegExp {
 const GREEK_NOTES = `
 Greek grammar to get right: η Κυριακή (την Κυριακή), το Σάββατο, η Πάφος (την Πάφο, της Πάφου), η Λεμεσός (τη Λεμεσό), το πιάνο (του πιάνου, τα πιάνα), το κούρδισμα (του κουρδίσματος), η αρμονική, το καρφόξυλο. Opening hours: «Ο Κλεάνθης εργάζεται Δευτέρα – Παρασκευή, 09:00 – 17:00· το Σάββατο και την Κυριακή δεν εργάζεται.» Give no reason for the hours. Write every word fully in Greek letters.`;
 
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
+  'September', 'October', 'November', 'December'];
+
+/** Last Sunday of a month, 01:00 UTC — when EU clocks change. */
+function lastSundayUtc(year: number, month: number): number {
+  const last = new Date(Date.UTC(year, month + 1, 0, 1));
+  return last.getTime() - last.getUTCDay() * 86_400_000;
+}
+
+/**
+ * Cyprus wall-clock time, e.g. "Thursday 24 September 2026, 17:08".
+ * Plain arithmetic on purpose: the first Intl.DateTimeFormat with a time
+ * zone loads ICU zone data, measured at ~20 ms — twice the Free plan's
+ * per-request CPU budget. Cyprus is UTC+2, and UTC+3 from the last Sunday of
+ * March to the last Sunday of October (EU rule, 01:00 UTC).
+ */
+export function cyprusNow(at = new Date()): string {
+  const t = at.getTime();
+  const y = at.getUTCFullYear();
+  const summer = t >= lastSundayUtc(y, 2) && t < lastSundayUtc(y, 9);
+  const d = new Date(t + (summer ? 3 : 2) * 3_600_000);
+  const hh = String(d.getUTCHours()).padStart(2, '0');
+  const mm = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}, ${hh}:${mm}`;
+}
+
 export function systemPrompt(
   k: { slugs: string[]; text: string },
   locale: 'en' | 'el',
   page: string,
   lang: 'en' | 'el' = locale,
 ): string {
-  const now = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Nicosia',
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', hour12: false,
-  }).format(new Date());
+  const now = cyprusNow();
 
   return `You are the website assistant for Piano Tunings Cy, a one-person piano tuning and repair business in Cyprus run by Kleanthis Christoforou. You are an AI assistant, not Kleanthis; say so if asked. Refer to him in the third person ("Kleanthis covers…", "he will quote…"; in Greek ο Κλεάνθης, τον/του Κλεάνθη), never "I" for his work. Name Kleanthis before calling him "he". Where KNOWLEDGE says "we", it means Kleanthis.
 

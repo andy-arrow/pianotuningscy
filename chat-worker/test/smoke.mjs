@@ -13,7 +13,7 @@ globalThis.fetch = async (url) => {
 };
 
 const { default: worker, DailyAllowance, visitorKey } = await import('../src/index.ts');
-const { replyLanguage } = await import('../src/prompt.ts');
+const { replyLanguage, cyprusNow } = await import('../src/prompt.ts');
 
 // The real DailyAllowance class over an in-memory storage, one per "day" name.
 function fakeDaily() {
@@ -83,6 +83,9 @@ const post = (body, origin = 'https://pianotuningscy.com', ip = '203.0.113.9') =
   });
 
 async function events(res) {
+  return events_(res);
+}
+async function events_(res) {
   const text = await res.text();
   return text.split('\n\n').filter(Boolean).map((l) => JSON.parse(l.replace(/^data: /, '')));
 }
@@ -120,6 +123,19 @@ await test('streams OpenAI-style deltas as {t}, ends with {done}, drops reasonin
   assert.match(c.inputs.messages[0].content, /Piano tuning: €100\./);
   assert.match(c.inputs.messages[0].content, /Valid slugs: piano-tuning, piano-moving/);
   assert.match(c.inputs.messages[0].content, /Visitor is reading: \/services\//);
+});
+
+await test('fast text path: escapes, reasoning dropped, many events in one chunk', async () => {
+  const events = [
+    { choices: [{ delta: { content: '', reasoning_content: null, role: 'assistant' } }], usage: { prompt_tokens: 3321 } },
+    { choices: [{ delta: { reasoning_content: 'hmm "quoted" thinking', content: null } }] },
+    { choices: [{ delta: { content: 'Say \"hi\" \\ back\nslash é ' } }] },
+    { choices: [{ delta: { content: 'Κούρδισμα «€100»' } }], usage: { completion_tokens: 1 } },
+  ];
+  const raw = events.map((e) => `data: ${JSON.stringify(e)}\r\n\r\n`).join('') + 'data: [DONE]\r\n\r\n';
+  const { env } = makeEnv({ run: () => new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode(raw)); c.close(); } }) });
+  const ev = await events_(await worker.fetch(post(ask), env, ctx));
+  assert.deepEqual(ev, [{ t: 'Say "hi" \\ back\nslash é Κούρδισμα «€100»' }, { done: true }]);
 });
 
 await test('legacy {response} shape is normalised too', async () => {
@@ -381,6 +397,23 @@ await test('health endpoint reports knowledge and models', async () => {
   const body = await res.json();
   assert.equal(body.ok, true);
   assert.equal(body.models.length, 2);
+});
+
+await test('Greek replies get the Greek grammar notes; English ones do not', async () => {
+  const { systemPrompt } = await import('../src/prompt.ts');
+  const k = { text: 'K', slugs: ['piano-tuning'] };
+  assert.match(systemPrompt(k, 'el', '/el/', 'el'), /Greek grammar to get right/);
+  assert.doesNotMatch(systemPrompt(k, 'en', '/', 'en'), /Greek grammar to get right/);
+});
+
+await test('Cyprus time without Intl matches the real time zone, DST edges included', async () => {
+  const fmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Nicosia', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+  const want = (d) => { const p = Object.fromEntries(fmt.formatToParts(d).map((x) => [x.type, x.value])); return `${p.weekday} ${p.day} ${p.month} ${p.year}, ${p.hour}:${p.minute}`; };
+  const edges = ['2026-03-29T00:59:00Z', '2026-03-29T01:00:00Z', '2026-10-25T00:59:00Z', '2026-10-25T01:00:00Z', '2026-12-31T22:30:00Z', '2027-03-28T01:00:00Z'];
+  for (const iso of edges) assert.equal(cyprusNow(new Date(iso)), want(new Date(iso)), iso);
+  for (let t = Date.UTC(2026, 0, 1); t < Date.UTC(2028, 0, 1); t += 3_600_000 * 37) {
+    assert.equal(cyprusNow(new Date(t)), want(new Date(t)), new Date(t).toISOString());
+  }
 });
 
 console.log(`\n${passed} passed`);

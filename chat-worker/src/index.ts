@@ -153,10 +153,23 @@ export default {
       const timer = last ? null : setTimeout(() => ac.abort(new Error(`stalled: no text in ${stallMs} ms`)), stallMs);
       try {
         const upstream = await run(env, model, system, input.messages, ac.signal);
-        let stream = upstream.pipeThrough(normalise(model, stray, env.DEBUG === '1'));
-        if (!last) stream = await firstText(stream, ac.signal);
+        let settle!: (ok: boolean) => void;
+        const firstText = new Promise<boolean>((resolve) => { settle = resolve; });
+        const ts = normalise(model, stray, env.DEBUG === '1', settle);
+        // A broken upstream (or a visitor who leaves) ends the attempt too.
+        upstream.pipeTo(ts.writable).catch(() => settle(false));
+        if (!last) {
+          const aborted = new Promise<boolean>((resolve) => {
+            if (ac.signal.aborted) resolve(false);
+            ac.signal.addEventListener('abort', () => resolve(false), { once: true });
+          });
+          if (!(await Promise.race([firstText, aborted]))) {
+            ts.readable.cancel().catch(() => {});
+            throw ac.signal.aborted ? ac.signal.reason : new Error('no text before the stream ended');
+          }
+        }
         if (timer) clearTimeout(timer);
-        return new Response(stream, {
+        return new Response(ts.readable, {
           headers: {
             ...cors,
             'Content-Type': 'text/event-stream; charset=utf-8',
@@ -175,47 +188,6 @@ export default {
     return fail('upstream', cors);
   },
 } satisfies ExportedHandler<Env>;
-
-/**
- * Reads a normalised stream until its first text event and returns an
- * equivalent stream (buffered events first). Throws — so the next model is
- * tried — if the stream errors, ends, or the signal aborts before any text.
- */
-async function firstText(stream: ReadableStream<Uint8Array>, signal: AbortSignal) {
-  const reader = stream.getReader();
-  const dec = new TextDecoder();
-  const held: Uint8Array[] = [];
-  let seen = '';
-  const aborted = new Promise<never>((_, reject) => {
-    if (signal.aborted) reject(signal.reason);
-    signal.addEventListener('abort', () => reject(signal.reason), { once: true });
-  });
-  aborted.catch(() => {});
-  try {
-    for (;;) {
-      const { done, value } = await Promise.race([reader.read(), aborted]);
-      if (done) throw new Error('ended before any text');
-      held.push(value);
-      seen += dec.decode(value, { stream: true });
-      const first = seen.match(/data: \{"(t|error|done)"/);
-      if (!first) continue;
-      if (first[1] !== 't') throw new Error(`no text before ${first[1]}`);
-      break;
-    }
-  } catch (e) {
-    reader.cancel().catch(() => {});
-    throw e;
-  }
-  return new ReadableStream<Uint8Array>({
-    start(c) { for (const chunk of held) c.enqueue(chunk); },
-    async pull(c) {
-      const { done, value } = await reader.read();
-      if (done) c.close();
-      else c.enqueue(value);
-    },
-    cancel(reason) { return reader.cancel(reason); },
-  });
-}
 
 /* ---------- visitors ---------- */
 
@@ -444,70 +416,117 @@ async function run(env: Env, model: string, system: string, messages: Msg[], sig
  * Model stream → the widget's protocol. Accepts every streaming shape Workers
  * AI produces ({response}, OpenAI chat deltas, Responses API events) and drops
  * reasoning text, so swapping models never touches the website.
+ *
+ * Kept lean for the Free plan's 10 ms CPU budget, of which the Workers AI
+ * binding itself takes about 5 ms (measured): one output event per network
+ * chunk rather than per token, and the text of OpenAI-style deltas read
+ * straight out of the event without parsing its bulky usage metadata.
+ * Anything unusual falls back to a full JSON.parse.
+ *
+ * `onFirst(true)` fires with the first text, `onFirst(false)` if the stream
+ * errors or ends before any. The readable side buffers freely, so the handler
+ * can wait for that verdict before anything reads it.
  */
-function normalise(model: string, stray: RegExp, debug = false): TransformStream<Uint8Array, Uint8Array> {
+function normalise(
+  model: string,
+  stray: RegExp,
+  debug = false,
+  onFirst: (ok: boolean) => void = () => {},
+): TransformStream<Uint8Array, Uint8Array> {
   const enc = new TextEncoder();
   const dec = new TextDecoder();
   let buffer = '';
   let finished = false;
   let sent = 0;
+  let decided = false;
+  const decide = (ok: boolean) => {
+    if (!decided) { decided = true; onFirst(ok); }
+  };
+
+  type Read = { text: string; end?: 'done' | 'error'; usage?: unknown };
+
+  const read = (payload: string): Read => {
+    if (payload === '[DONE]') return { text: '', end: 'done' };
+    // Fast path. `"content":"` can't match "reasoning_content", whose
+    // "content" follows an underscore, not a quote.
+    const at = debug ? -1 : payload.indexOf('"content":"');
+    if (at !== -1) {
+      let j = at + 11;
+      while (j < payload.length && payload[j] !== '"') j += payload[j] === '\\' ? 2 : 1;
+      try { return { text: JSON.parse(payload.slice(at + 10, j + 1)) as string }; } catch { /* full parse below */ }
+    }
+    let d: Record<string, any>;
+    try { d = JSON.parse(payload); } catch { return { text: '' }; }
+    const usage = debug ? d.usage : undefined;
+    if (typeof d.response === 'string') return { text: d.response, usage };
+    if (typeof d.choices?.[0]?.delta?.content === 'string') return { text: d.choices[0].delta.content, usage };
+    if (typeof d.choices?.[0]?.text === 'string') return { text: d.choices[0].text, usage };
+    if (d.type === 'response.output_text.delta' && typeof d.delta === 'string') return { text: d.delta, usage };
+    if (d.type === 'response.completed' || d.type === 'response.done') return { text: '', end: 'done' };
+    if (d.type === 'error' || d.type === 'response.failed' || d.error) {
+      console.error('stream error', model, JSON.stringify(d.error ?? d).slice(0, 300));
+      return { text: '', end: 'error' };
+    }
+    return { text: '', usage };
+  };
 
   const emit = (c: TransformStreamDefaultController<Uint8Array>, obj: object) =>
     c.enqueue(enc.encode(`data: ${JSON.stringify(obj)}\n\n`));
 
-  const handle = (c: TransformStreamDefaultController<Uint8Array>, payload: string) => {
-    if (finished) return;
-    if (payload === '[DONE]') {
-      finished = true;
-      emit(c, sent ? { done: true } : { error: 'upstream' });
-      return;
-    }
-    let d: Record<string, any>;
-    try { d = JSON.parse(payload); } catch { return; }
-    if (debug && d.usage) emit(c, { usage: d.usage, model });
+  const flushText = (c: TransformStreamDefaultController<Uint8Array>, text: string) => {
+    const clean = text.replace(stray, '');
+    if (!clean) return;
+    sent += clean.length;
+    emit(c, { t: clean });
+    decide(true);
+  };
 
-    let text = '';
-    if (typeof d.response === 'string') text = d.response;
-    else if (typeof d.choices?.[0]?.delta?.content === 'string') text = d.choices[0].delta.content;
-    else if (typeof d.choices?.[0]?.text === 'string') text = d.choices[0].text;
-    else if (d.type === 'response.output_text.delta' && typeof d.delta === 'string') text = d.delta;
-    else if (d.type === 'response.completed' || d.type === 'response.done') {
-      finished = true;
-      emit(c, sent ? { done: true } : { error: 'upstream' });
-      return;
-    } else if (d.type === 'error' || d.type === 'response.failed' || d.error) {
-      finished = true;
-      console.error('stream error', model, JSON.stringify(d.error ?? d).slice(0, 300));
+  const finish = (c: TransformStreamDefaultController<Uint8Array>, how: 'done' | 'error') => {
+    finished = true;
+    if (how === 'done' && sent) emit(c, { done: true });
+    else {
       emit(c, { error: 'upstream' });
-      return;
-    }
-
-    text = text.replace(stray, '');
-    if (text) {
-      sent += text.length;
-      emit(c, { t: text });
+      decide(false);
     }
   };
 
-  return new TransformStream({
-    transform(chunk, c) {
-      buffer += dec.decode(chunk, { stream: true });
-      let cut: number;
-      while ((cut = buffer.search(/\r?\n\r?\n/)) !== -1) {
-        const event = buffer.slice(0, cut);
-        buffer = buffer.slice(cut).replace(/^\r?\n\r?\n/, '');
-        for (const line of event.split(/\r?\n/)) {
-          if (line.startsWith('data:')) handle(c, line.slice(5).trim());
+  const process = (c: TransformStreamDefaultController<Uint8Array>, events: string[]) => {
+    let text = '';
+    for (const event of events) {
+      for (const line of event.split('\n')) {
+        if (finished || !line.startsWith('data:')) continue;
+        const r = read(line.slice(5).trim());
+        if (r.usage) emit(c, { usage: r.usage, model });
+        text += r.text;
+        if (r.end) {
+          flushText(c, text);
+          text = '';
+          finish(c, r.end);
         }
       }
+    }
+    if (!finished) flushText(c, text);
+  };
+
+  return new TransformStream<Uint8Array, Uint8Array>(
+    {
+      transform(chunk, c) {
+        if (finished) return;
+        buffer += dec.decode(chunk, { stream: true }).replace(/\r/g, '');
+        const cut = buffer.lastIndexOf('\n\n');
+        if (cut === -1) return;
+        const complete = buffer.slice(0, cut);
+        buffer = buffer.slice(cut + 2);
+        process(c, complete.split('\n\n'));
+      },
+      flush(c) {
+        if (!finished && buffer.trim()) process(c, [buffer]);
+        if (!finished) finish(c, sent ? 'done' : 'error');
+      },
     },
-    flush(c) {
-      for (const line of buffer.split(/\r?\n/)) {
-        if (line.startsWith('data:')) handle(c, line.slice(5).trim());
-      }
-      if (!finished) emit(c, sent ? { done: true } : { error: 'upstream' });
-    },
-  });
+    undefined,
+    { highWaterMark: 1_024 },
+  );
 }
 
 /* ---------- errors ---------- */
@@ -519,7 +538,7 @@ function errorCode(e: unknown): string {
 
 function classify(e: unknown): ErrorKind {
   const msg = String((e as Error)?.message ?? e);
-  // 3036: the account's daily free Neurons are used up (older docs: 4006).
+  // 4006 (seen live) / 3036 (docs): the account's daily free Neurons are used up.
   if (/\b(3036|4006)\b|daily free allocation|neurons/i.test(msg)) return 'quota';
   return 'upstream';
 }
