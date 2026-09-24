@@ -129,7 +129,6 @@ export const ui = {
     'form.pianoType': 'Type of piano',
     'form.pianoUpright': 'Upright',
     'form.pianoGrand': 'Grand',
-    'form.pianoDigital': 'Digital',
     'form.pianoUnsure': 'Not sure',
     'form.lastTuned': 'When was it last tuned?',
     'form.lastTunedOptions': 'Within a year|1–3 years ago|3–10 years ago|More than 10 years ago|Never / don’t know',
@@ -295,7 +294,6 @@ export const ui = {
     'form.pianoType': 'Τύπος πιάνου',
     'form.pianoUpright': 'Όρθιο',
     'form.pianoGrand': 'Με ουρά',
-    'form.pianoDigital': 'Ηλεκτρικό',
     'form.pianoUnsure': 'Δεν γνωρίζω',
     'form.lastTuned': 'Πότε κουρδίστηκε τελευταία φορά;',
     'form.lastTunedOptions':
