@@ -1,0 +1,24 @@
+# DNS ROLLBACK SNAPSHOT — pianotuningscy.com
+# Captured 2026-09-24 05:53 UTC immediately before the Wix → Netlify cutover.
+# To roll back: restore the A and CNAME values below. Nothing else was changed.
+
+## A (apex) — CHANGING to 75.2.60.5
+pianotuningscy.com.	600	IN	A	185.230.63.107
+
+## CNAME www — CHANGING to cosmic-melba-611406.netlify.app
+www.pianotuningscy.com.	600	IN	CNAME	www43.wixdns.net.
+
+## CNAME ftp — NOT TOUCHED
+ftp.pianotuningscy.com.	3600	IN	CNAME	ftp.c3ub80nh5.service.one.
+
+## MX — NOT TOUCHED (business email)
+pianotuningscy.com.	10800	IN	MX	10 mx4.mailpod15-cph3.g1i.one.com.
+pianotuningscy.com.	10800	IN	MX	10 mx1.mailpod15-cph3.g1i.one.com.
+pianotuningscy.com.	10800	IN	MX	10 mx2.mailpod15-cph3.g1i.one.com.
+pianotuningscy.com.	10800	IN	MX	10 mx3.mailpod15-cph3.g1i.one.com.
+
+## TXT — none today; SPF + DMARC being ADDED
+
+## NS — NOT TOUCHED
+pianotuningscy.com.	14400	IN	NS	ns01.one.com.
+pianotuningscy.com.	14400	IN	NS	ns02.one.com.

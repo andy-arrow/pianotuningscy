@@ -6,7 +6,8 @@
 export const site = {
   name: 'Piano Tunings Cy',
   legalName: 'Piano Tunings Cy',
-  url: 'https://www.pianotuningscy.com',
+  /** Apex — must match astro.config SITE and Netlify's primary domain. */
+  url: 'https://pianotuningscy.com',
   foundingYear: 2011,
 
   technician: {

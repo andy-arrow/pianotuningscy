@@ -3,7 +3,10 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
-export const SITE = 'https://www.pianotuningscy.com';
+// Apex, not www: Netlify serves the apex as the primary domain and 301s
+// www -> apex. Canonical tags, the sitemap, hreflang and schema must agree
+// with that, or Google sees a page redirect to a URL that disclaims itself.
+export const SITE = 'https://pianotuningscy.com';
 
 /**
  * Preview deploys (GitHub Pages) set these. A preview is served from /<repo>/,
