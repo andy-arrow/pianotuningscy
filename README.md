@@ -188,9 +188,12 @@ add that origin to `connect-src` in both `public/_headers` and `netlify.toml`. A
 
 **Abuse limits** (none of them about money — the free allowance can never become a
 bill; they keep the assistant available for real visitors): 6 answers a minute per
-visitor, 20 a minute site-wide, and 40 a day per visitor (IPv6 counted per /64). The
-daily counts live in a Durable Object under pseudonyms (HMAC with a random daily secret),
-deleted with the secret after 48 hours.
+visitor, 20 a minute site-wide, and 40 a day per visitor (IPv6 counted per /64, with a
+further 120 a day per /56, since one subscriber often holds 256 /64s). The daily counts
+live in a Durable Object under pseudonyms (HMAC with a random daily secret), deleted with
+the secret after 48 hours. Many unrelated addresses (VPN, Tor) can still use up a day's
+allowance; the remedy would be Cloudflare Turnstile, which needs a secret pasted into the
+Worker and a privacy-policy update.
 
 **Evaluating a prompt or model change** (spends real Neurons):
 

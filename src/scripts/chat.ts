@@ -533,7 +533,8 @@ function setup(root: HTMLElement) {
     history = [];
     save();
     renderAll();
-    input.focus();
+    // Same rule as open(): no keyboard popping up over the starter questions.
+    (coarse.matches ? log : input).focus({ preventScroll: true });
   });
 
   /* ---------- open / close, focus, mobile ---------- */

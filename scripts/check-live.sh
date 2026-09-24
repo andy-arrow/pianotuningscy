@@ -155,13 +155,16 @@ for ev in raw.split("\n\n"):
     if ev.startswith("data: "):
         d=json.loads(ev[6:]); out+=d.get("t","")
         if "error" in d: out+="[ERROR:"+d["error"]+"]"
+        if d.get("done"): out+="[END]"
 if not out:
     try: out="[ERROR:"+json.loads(raw).get("error","?")+"]"
     except Exception: pass
 print(out)' 2>/dev/null)
-  case "$txt" in *"ERROR:quota"*) ok "AI answers" "paused: daily free allowance used (expected fail-closed)";;
-                 *"100"*) ok "AI answers" "streams, quotes €100";;
-                 *) bad "AI answers" "HTTP $code ${txt:0:120}";; esac
+  case "$txt" in *"[ERROR:quota]"*) ok "AI answers" "paused: daily free allowance used (expected fail-closed)";;
+                 *"[ERROR:daily]"*|*"[ERROR:rate]"*) ok "AI answers" "skipped: this IP has hit its own chat limit";;
+                 *"[ERROR:"*) bad "AI answers" "HTTP $code ${txt:0:160}";;
+                 *"100"*"[END]") ok "AI answers" "streams a complete reply quoting €100";;
+                 *) bad "AI answers" "HTTP $code ${txt:0:160}";; esac
 fi
 
 printf "\n\033[1m%d passed, %d failed\033[0m\n" "$pass" "$fail"

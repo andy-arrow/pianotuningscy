@@ -223,7 +223,11 @@ const isActive = (href: string) =>
 
     btn.addEventListener('click', () => setOpen(btn.getAttribute('aria-expanded') !== 'true'));
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') {
+      // Leave Escape to the chat assistant when it has focus or covers the page.
+      const chatOwns =
+        document.activeElement?.closest('[data-chat-panel]') ||
+        document.documentElement.hasAttribute('data-lock-chat');
+      if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true' && !chatOwns) {
         // Claimed, so the chat assistant doesn't also close on the same key.
         e.preventDefault();
         setOpen(false);

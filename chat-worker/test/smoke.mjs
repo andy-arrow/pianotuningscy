@@ -12,7 +12,7 @@ globalThis.fetch = async (url) => {
   return new Response(JSON.stringify(KNOWLEDGE), { headers: { 'Content-Type': 'application/json' } });
 };
 
-const { default: worker, DailyAllowance, visitorKey } = await import('../src/index.ts');
+const { default: worker, DailyAllowance, visitorKey, prefix56 } = await import('../src/index.ts');
 const { replyLanguage, cyprusNow } = await import('../src/prompt.ts');
 
 // The real DailyAllowance class over an in-memory storage, one per "day" name.
@@ -26,7 +26,7 @@ function fakeDaily() {
         let alarm = null;
         const storage = {
           get: async (k) => data.get(k),
-          put: async (k, v) => { data.set(k, v); },
+          put: async (k, v) => { if (typeof k === 'object') for (const [a, b] of Object.entries(k)) data.set(a, b); else data.set(k, v); },
           getAlarm: async () => alarm,
           setAlarm: async (t) => { alarm = t; },
           deleteAll: async () => data.clear(),
@@ -75,12 +75,19 @@ function makeEnv({ run, allow = () => true, stallMs, daily = fakeDaily() } = {})
 }
 const ctx = { waitUntil() {}, passThroughOnException() {} };
 
-const post = (body, origin = 'https://pianotuningscy.com', ip = '203.0.113.9') =>
-  new Request('https://pianotuningscy-chat.example.workers.dev/', {
+// Browsers always send Content-Length with a string body; Node's Request
+// doesn't add it, so the helper does, as the Worker requires it.
+const post = (body, origin = 'https://pianotuningscy.com', ip = '203.0.113.9') => {
+  const text = typeof body === 'string' ? body : JSON.stringify(body);
+  return new Request('https://pianotuningscy-chat.example.workers.dev/', {
     method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=UTF-8', Origin: origin, 'CF-Connecting-IP': ip },
-    body: typeof body === 'string' ? body : JSON.stringify(body),
+    headers: {
+      'Content-Type': 'text/plain;charset=UTF-8', Origin: origin, 'CF-Connecting-IP': ip,
+      'Content-Length': String(Buffer.byteLength(text)),
+    },
+    body: text,
   });
+};
 
 async function events(res) {
   return events_(res);
@@ -169,12 +176,24 @@ await test('a model whose request itself hangs is abandoned for the fallback', a
   assert.equal(calls.length, 2);
 });
 
-await test('a primary that ends without any text hands over to the fallback', async () => {
-  const { env } = makeEnv({
-    run: (model) => (model.includes('gemma') ? sse([{ choices: [{ delta: { content: '' } }] }, '[DONE]']) : sse([{ response: 'Fallback' }, '[DONE]'])),
+// stallMs is set far beyond the 1 s asserted below, so these prove the
+// "no text" verdict itself triggers the fallback — not the stall timer.
+for (const [name, primary] of [
+  ['ends with [DONE] but no text', () => sse([{ choices: [{ delta: { content: '' } }] }, '[DONE]'])],
+  ['closes without [DONE] or text', () => sse([{ choices: [{ delta: {} }] }])],
+  ['sends an error event before any text', () => sse([{ type: 'error', error: { message: 'boom' } }])],
+]) {
+  await test(`a primary that ${name} hands over to the fallback at once`, async () => {
+    const { env, calls } = makeEnv({
+      stallMs: 60_000,
+      run: (model) => (model.includes('gemma') ? primary() : sse([{ response: 'Fallback' }, '[DONE]'])),
+    });
+    const t = Date.now();
+    assert.deepEqual(await events(await worker.fetch(post(ask), env, ctx)), [{ t: 'Fallback' }, { done: true }]);
+    assert.equal(calls.length, 2);
+    assert.ok(Date.now() - t < 1_000, 'no waiting on the stall timer');
   });
-  assert.deepEqual(await events(await worker.fetch(post(ask), env, ctx)), [{ t: 'Fallback' }, { done: true }]);
-});
+}
 
 await test('a model that stalls before answering is abandoned for the fallback', async () => {
   let cancelled = false;
@@ -226,8 +245,21 @@ await test('both models failing → upstream', async () => {
 });
 
 await test('empty stream is an error, not a blank reply', async () => {
-  const { env } = makeEnv({ run: () => sse(['[DONE]']) });
+  const { env } = makeEnv({ stallMs: 60_000, run: () => sse(['[DONE]']) });
+  const t = Date.now();
   assert.deepEqual(await events(await worker.fetch(post(ask), env, ctx)), [{ error: 'upstream' }]);
+  assert.ok(Date.now() - t < 1_000);
+});
+
+await test('a request without a declared length is refused before its body is read', async () => {
+  const { env, calls } = makeEnv({ run: () => sse(['[DONE]']) });
+  let pulled = 0;
+  const body = new ReadableStream({ pull(c) { pulled++; c.enqueue(new TextEncoder().encode('x'.repeat(1024))); } });
+  const req = new Request('https://w/', { method: 'POST', headers: { Origin: 'https://pianotuningscy.com', 'CF-Connecting-IP': '1.2.3.4' }, body, duplex: 'half' });
+  const res = await worker.fetch(req, env, ctx);
+  assert.equal(res.status, 400);
+  assert.equal(calls.length, 0);
+  assert.ok(pulled <= 1, 'body not consumed');
 });
 
 await test('unknown origin is refused before any model call', async () => {
@@ -254,6 +286,33 @@ await test('IPv6 addresses are grouped per /64, compressed or not', async () => 
   for (const [a, b] of same) assert.equal(visitorKey(a), visitorKey(b), `${a} vs ${b}`);
   assert.notEqual(visitorKey('2001:db8:1:1::1'), visitorKey('2001:db8:1:2::1'));
   assert.equal(visitorKey('203.0.113.9'), '203.0.113.9');
+});
+
+await test('IPv6 /56 prefixes', async () => {
+  assert.equal(prefix56('2001:db8:1:2a0f::1'), '2001:db8:1:2a00::/56');
+  assert.equal(prefix56('2001:db8:1:2aff:9::9'), '2001:db8:1:2a00::/56');
+  assert.notEqual(prefix56('2001:db8:1:2b00::1'), prefix56('2001:db8:1:2a00::1'));
+  assert.equal(prefix56('203.0.113.9'), null);
+  assert.equal(visitorKey('fe80::1%en0'), 'fe80:0:0:0::/64');
+  assert.equal(visitorKey('::1'), '0:0:0:0::/64');
+  assert.equal(visitorKey('unknown'), 'unknown');
+});
+
+await test('one IPv6 /56 is capped at 120 answers a day however many /64s it rotates through', async () => {
+  const daily = fakeDaily();
+  const { env, calls } = makeEnv({ run: () => sse([{ response: 'ok' }, '[DONE]']), daily });
+  let answered = 0;
+  for (let n = 0; n < 200; n++) {
+    // A new /64 every 10 requests, all inside 2001:db8:1:2a00::/56.
+    const ip = `2001:db8:1:2a${(Math.floor(n / 10) % 256).toString(16).padStart(2, '0')}::${n}`;
+    const res = await worker.fetch(post(ask, undefined, ip), env, ctx);
+    if (res.status === 200) answered++;
+    await res.text();
+  }
+  assert.equal(answered, 120);
+  assert.equal(calls.length, 120);
+  const outside = await worker.fetch(post(ask, undefined, '2001:db8:1:2b00::1'), env, ctx);
+  assert.equal(outside.status, 200);
 });
 
 await test('IPv6 visitors are limited per /64', async () => {
@@ -287,7 +346,7 @@ await test('the daily counter stores pseudonyms, never addresses, and forgets af
   const data = new Map();
   let alarm = null;
   const obj = new DailyAllowance({ storage: {
-    get: async (k) => data.get(k), put: async (k, v) => { data.set(k, v); },
+    get: async (k) => data.get(k), put: async (k, v) => { if (typeof k === 'object') for (const [a, b] of Object.entries(k)) data.set(a, b); else data.set(k, v); },
     getAlarm: async () => alarm, setAlarm: async (t) => { alarm = t; }, deleteAll: async () => data.clear(),
   } });
   const take = () => obj.fetch(new Request('https://daily/take', { method: 'POST', body: JSON.stringify({ visitor: '198.51.100.7', limit: 2 }) })).then((r) => r.text());

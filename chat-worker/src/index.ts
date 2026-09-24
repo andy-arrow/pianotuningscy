@@ -63,8 +63,14 @@ const LIMITS = {
  * Answers one visitor (IPv4 address, or IPv6 /64) may use per UTC day. The
  * per-minute limits alone would let a single script drain the whole daily
  * allowance in under an hour; with this, one source can use about a tenth.
+ * An IPv6 subscriber often holds a whole /56 (256 /64s), so that is capped
+ * too — generously, since mobile carriers share pools among customers. None
+ * of this stops a determined attacker with many unrelated addresses; that
+ * would take a challenge such as Turnstile. The worst case remains the chat
+ * pausing until midnight UTC, never a bill.
  */
 const DAILY_PER_VISITOR = 40;
+const DAILY_PER_V6_56 = 120;
 
 const STATUS: Record<ErrorKind, number> = {
   invalid: 400, forbidden: 403, rate: 429, daily: 429, upstream: 502, quota: 503,
@@ -109,13 +115,14 @@ export default {
     // never become a bill — it keeps the assistant available for real people.
     // Checked in order, per-visitor first, so a request one visitor isn't
     // allowed never uses up the site-wide budget everyone shares.
-    const visitor = visitorKey(request.headers.get('CF-Connecting-IP') ?? 'unknown');
+    const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+    const visitor = visitorKey(ip);
     if (!(await env.PER_IP.limit({ key: visitor })).success) return fail('rate', cors);
 
     const input = await parse(request);
     if (!input) return fail('invalid', cors);
 
-    if (!(await takeDaily(env, visitor))) return fail('daily', cors);
+    if (!(await takeDaily(env, visitor, prefix56(ip)))) return fail('daily', cors);
     if (!(await env.GLOBAL.limit({ key: 'all' })).success) return fail('rate', cors);
 
     let knowledge: Knowledge;
@@ -179,9 +186,12 @@ export default {
         });
       } catch (e) {
         if (timer) clearTimeout(timer);
-        if (!ac.signal.aborted) ac.abort();
-        const kind = classify(e);
-        console.error('model failed', model, kind, errorCode(e));
+        // Read before aborting: our own stall abort isn't a Workers AI error,
+        // and its message ("…8000 ms") must not be parsed as an error code.
+        const stalled = ac.signal.aborted;
+        if (!stalled) ac.abort();
+        const kind = stalled ? 'upstream' : classify(e);
+        console.error('model failed', model, kind, stalled ? 'stall' : errorCode(e));
         if (kind === 'quota') return fail('quota', cors);
       }
     }
@@ -191,29 +201,43 @@ export default {
 
 /* ---------- visitors ---------- */
 
+/** The eight 16-bit groups of an IPv6 address, "::" expanded; null if not IPv6. */
+function ipv6Groups(ip: string): number[] | null {
+  if (!ip.includes(':')) return null;
+  const [head, tail = ''] = ip.toLowerCase().split('%')[0].split('::');
+  const h = head ? head.split(':') : [];
+  const t = ip.includes('::') && tail ? tail.split(':') : [];
+  const parts = ip.includes('::') ? [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t] : h;
+  if (parts.length < 4) return null;
+  return parts.map((g) => parseInt(g || '0', 16) || 0);
+}
+
 /**
  * IPv6 hosts get their whole /64, so rotating addresses inside it can't dodge
  * the limits. The address is expanded first: "2001:db8::1:2:3:4" and
  * "2001:db8::5:6:7:8" are the same /64.
  */
 export function visitorKey(ip: string): string {
-  if (!ip.includes(':')) return ip;
-  const [head, tail = ''] = ip.toLowerCase().split('::');
-  const h = head ? head.split(':') : [];
-  const t = ip.includes('::') && tail ? tail.split(':') : [];
-  const groups = ip.includes('::') ? [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t] : h;
-  if (groups.length < 4) return ip.toLowerCase();
-  return `${groups.slice(0, 4).map((g) => parseInt(g || '0', 16).toString(16)).join(':')}::/64`;
+  const g = ipv6Groups(ip);
+  if (!g) return ip.toLowerCase();
+  return `${g.slice(0, 4).map((x) => x.toString(16)).join(':')}::/64`;
 }
 
-async function takeDaily(env: Env, visitor: string): Promise<boolean> {
+/** The IPv6 /56 an address belongs to (a typical home delegation), or null for IPv4. */
+export function prefix56(ip: string): string | null {
+  const g = ipv6Groups(ip);
+  if (!g) return null;
+  return `${g.slice(0, 3).map((x) => x.toString(16)).join(':')}:${(g[3] & 0xff00).toString(16)}::/56`;
+}
+
+async function takeDaily(env: Env, visitor: string, group: string | null): Promise<boolean> {
   const day = new Date().toISOString().slice(0, 10);
   try {
     const stub = env.DAILY.get(env.DAILY.idFromName(day));
-    // The raw key only travels to the counter, which stores a keyed hash of it.
+    // The raw keys only travel to the counter, which stores keyed hashes of them.
     const res = await stub.fetch('https://daily/take', {
       method: 'POST',
-      body: JSON.stringify({ visitor, limit: DAILY_PER_VISITOR }),
+      body: JSON.stringify({ visitor, limit: DAILY_PER_VISITOR, group, groupLimit: DAILY_PER_V6_56 }),
     });
     return (await res.text()) === '1';
   } catch (e) {
@@ -250,13 +274,23 @@ export class DailyAllowance {
     return this.key;
   }
 
+  private async pseudonym(prefix: string, value: string): Promise<string> {
+    const mac = await crypto.subtle.sign('HMAC', await this.hmacKey(), new TextEncoder().encode(value));
+    return `${prefix}:${[...new Uint8Array(mac).slice(0, 16)].map((b) => b.toString(16).padStart(2, '0')).join('')}`;
+  }
+
   async fetch(request: Request): Promise<Response> {
-    const { visitor, limit } = (await request.json()) as { visitor: string; limit: number };
-    const mac = await crypto.subtle.sign('HMAC', await this.hmacKey(), new TextEncoder().encode(visitor));
-    const id = `v:${[...new Uint8Array(mac).slice(0, 16)].map((b) => b.toString(16).padStart(2, '0')).join('')}`;
+    const { visitor, limit, group, groupLimit } = (await request.json()) as {
+      visitor: string; limit: number; group?: string | null; groupLimit?: number;
+    };
+    const id = await this.pseudonym('v', visitor);
+    const gid = group ? await this.pseudonym('g', group) : null;
+    // Storage calls only between read and write, so no other request can
+    // interleave (Durable Object input gates) and no count is lost.
     const used = (await this.state.storage.get<number>(id)) ?? 0;
-    if (used >= limit) return new Response('0');
-    await this.state.storage.put(id, used + 1);
+    const groupUsed = gid ? ((await this.state.storage.get<number>(gid)) ?? 0) : 0;
+    if (used >= limit || (gid && groupUsed >= (groupLimit ?? Infinity))) return new Response('0');
+    await this.state.storage.put(gid ? { [id]: used + 1, [gid]: groupUsed + 1 } : { [id]: used + 1 });
     return new Response('1');
   }
 
@@ -269,8 +303,11 @@ export class DailyAllowance {
 /* ---------- request validation ---------- */
 
 async function parse(request: Request) {
-  const len = Number(request.headers.get('Content-Length') ?? 0);
-  if (len > LIMITS.bodyBytes) return null;
+  // The widget always sends a length. Requiring one means the body can't be
+  // larger than declared (the runtime enforces it), so nothing oversized is
+  // ever buffered.
+  const declared = request.headers.get('Content-Length');
+  if (declared === null || !/^\d+$/.test(declared) || Number(declared) > LIMITS.bodyBytes) return null;
 
   let body: { messages?: unknown; locale?: unknown; page?: unknown };
   try {

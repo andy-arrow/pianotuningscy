@@ -144,11 +144,23 @@ const configJson = JSON.stringify(config).replace(/</g, '\\u003c');
   const launcher = root?.querySelector<HTMLButtonElement>('[data-chat-launcher]');
 
   if (root && launcher) {
-    let loading: Promise<typeof import('../scripts/chat')> | null = null;
-    // A failed load (flaky connection) is forgotten, so the next try refetches.
-    const load = () =>
-      (loading ??= import('../scripts/chat').catch((e) => {
+    type ChatModule = typeof import('../scripts/chat');
+    let loading: Promise<ChatModule> | null = null;
+    let attempt = 0;
+    // Browsers remember a failed module load: Chromium and current Safari
+    // reject every later import() of the same URL without refetching (the
+    // spec change that fixes this is only in Firefox 155+ so far). So a retry
+    // re-imports the chunk under a cache-busting query, using the URL that
+    // Chromium puts in the error; elsewhere it retries the original import.
+    const load = (): Promise<ChatModule> =>
+      (loading ??= import('../scripts/chat').catch((e: unknown) => {
         loading = null;
+        const url = String((e as Error)?.message ?? '').match(/https?:\/\/\S+?\/_astro\/chat\.[\w-]+\.js/)?.[0];
+        if (url && new URL(url).origin === location.origin) {
+          loading = import(/* @vite-ignore */ `${url}?retry=${++attempt}`) as Promise<ChatModule>;
+          loading.catch(() => { loading = null; });
+          return loading;
+        }
         throw e;
       }));
     const warm = () => { load().catch(() => {}); };
@@ -161,11 +173,32 @@ const configJson = JSON.stringify(config).replace(/</g, '\\u003c');
     // If the chat can't load at all (offline, a deploy mid-visit), show the
     // direct contact options in place — never navigate away, which could
     // throw out a half-filled booking form.
+    let fallbackOpen: AbortController | null = null;
+    const panelEl = root.querySelector<HTMLElement>('[data-chat-panel]');
+    const logEl = root.querySelector<HTMLElement>('[data-chat-log]');
+    const formEl = root.querySelector<HTMLElement>('[data-chat-form]');
+
+    // If the chat loads after all, clear the fallback so it starts clean.
+    const undoFallback = () => {
+      if (!fallbackOpen) return;
+      fallbackOpen.abort();
+      fallbackOpen = null;
+      formEl?.removeAttribute('hidden');
+      logEl?.replaceChildren();
+      if (panelEl) panelEl.hidden = true;
+      root.dataset.state = 'closed';
+      launcher.inert = false;
+      launcher.setAttribute('aria-expanded', 'false');
+    };
+
     const fallback = () => {
       const cfg = JSON.parse(document.getElementById('ptc-chat-config')?.textContent || '{}');
-      const panel = root.querySelector<HTMLElement>('[data-chat-panel]');
-      const log = root.querySelector<HTMLElement>('[data-chat-log]');
+      const panel = panelEl;
+      const log = logEl;
       if (!panel || !log || !cfg.strings) return;
+      fallbackOpen?.abort();
+      fallbackOpen = new AbortController();
+      const { signal } = fallbackOpen;
       const p = document.createElement('p');
       p.className = 'rounded-2xl bg-white px-4 py-3 text-[0.95rem] text-ebony-800 ring-1 ring-ebony-200/70';
       p.textContent = cfg.strings.error;
@@ -179,11 +212,20 @@ const configJson = JSON.stringify(config).replace(/</g, '\\u003c');
         links.append(a);
       }
       log.replaceChildren(p, links);
-      root.querySelector('[data-chat-form]')?.setAttribute('hidden', '');
+      formEl?.setAttribute('hidden', '');
       root.dataset.state = 'open';
       panel.hidden = false;
-      const close = () => { panel.hidden = true; root.dataset.state = 'closed'; launcher.focus(); };
-      root.querySelector('[data-chat-close]')?.addEventListener('click', close, { once: true });
+      launcher.inert = true;
+      launcher.setAttribute('aria-expanded', 'true');
+      const close = () => {
+        panel.hidden = true;
+        root.dataset.state = 'closed';
+        launcher.inert = false;
+        launcher.setAttribute('aria-expanded', 'false');
+        launcher.focus();
+      };
+      root.querySelector('[data-chat-close]')?.addEventListener('click', close, { signal });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) close(); }, { signal });
       links.querySelector('a')?.focus();
     };
 
@@ -194,7 +236,9 @@ const configJson = JSON.stringify(config).replace(/</g, '\\u003c');
       if (pending) return;
       pending = true;
       try {
-        (await load().catch(() => load())).toggle(root);
+        const mod = await load().catch(() => load());
+        undoFallback();
+        mod.toggle(root);
       } catch {
         fallback();
       } finally {
@@ -207,12 +251,15 @@ const configJson = JSON.stringify(config).replace(/</g, '\\u003c');
 <style is:global>
   /* Launcher clears the mobile call bar when that bar is on screen. */
   .chat-launcher { bottom: max(1rem, env(safe-area-inset-bottom)); }
-  /* Same breakpoint as the bar's own lg:hidden (64rem), so it tracks the
-     browser's font size just as the bar does. */
-  @media (width < 64rem) {
-    html[data-callbar='shown'] .chat-launcher {
-      bottom: calc(60px + env(safe-area-inset-bottom) + 0.75rem);
-    }
+  /* Lifted clear of the call bar whenever it shows; lowered again from the
+     bar's own lg:hidden breakpoint (64rem). Written so that a browser which
+     drops the media query (iOS < 16.4 with range syntax) keeps the launcher
+     lifted rather than covering the bar's Book button. */
+  html[data-callbar='shown'] .chat-launcher {
+    bottom: calc(60px + env(safe-area-inset-bottom) + 0.75rem);
+  }
+  @media (min-width: 64rem) {
+    html[data-callbar='shown'] .chat-launcher { bottom: 1.5rem; }
   }
   @media (min-width: 640px) { .chat-launcher { bottom: 1.5rem; } }
 
