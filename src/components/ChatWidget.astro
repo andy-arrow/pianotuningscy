@@ -1,0 +1,241 @@
+---
+/**
+ * AI chat assistant.
+ *
+ * Only the launcher and an empty panel are server-rendered. The conversation
+ * logic is a separate chunk, fetched when a visitor shows intent (hover, focus
+ * or tap), so the assistant costs page load nothing until it is wanted.
+ *
+ * The panel says plainly that it is an AI, not Kleanthis — required under the
+ * EU AI Act's transparency rules for chatbots (Art. 50), in force since
+ * August 2026.
+ */
+import { site } from '~/data/site';
+import { services } from '~/data/services';
+import { useTranslations, path, servicePath, type Locale } from '~/i18n/ui';
+import Icon from '~/components/Icon.astro';
+
+interface Props { locale: Locale }
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+const config = {
+  locale,
+  endpoint: site.chat.endpoint,
+  // The route this page was built as (on the 404 page, the 404 route).
+  page: Astro.url.pathname,
+  phone: site.phone,
+  phoneDisplay: site.phoneDisplay,
+  whatsapp: site.whatsapp,
+  email: site.email,
+  bookUrl: path('book', locale),
+  services: Object.fromEntries(
+    services.map((s) => [s.slug, { name: s[locale].name, url: servicePath(s.slug, locale) }]),
+  ),
+  suggestions: t('chat.suggestions').split('|'),
+  strings: {
+    welcome: t('chat.welcome'),
+    thinking: t('chat.thinking'),
+    you: t('chat.you'),
+    assistant: t('chat.assistant'),
+    error: t('chat.error'),
+    rate: t('chat.rate'),
+    quota: t('chat.quota'),
+    limit: t('chat.limit'),
+    daily: t('chat.daily'),
+    tooLong: t('chat.tooLong'),
+    actionCall: t('chat.actionCall'),
+    actionWhatsapp: t('chat.actionWhatsapp'),
+    actionBook: t('chat.actionBook'),
+  },
+};
+
+// `<` escaped so no string in the config can ever close this script element.
+const configJson = JSON.stringify(config).replace(/</g, '\\u003c');
+---
+
+<div data-chat-root data-state="closed">
+  <button
+    type="button"
+    data-chat-launcher
+    aria-expanded="false"
+    aria-controls="ptc-chat-panel"
+    aria-label={t('chat.open')}
+    class="chat-launcher fixed right-4 z-40 inline-flex h-14 min-w-14 items-center justify-center gap-2.5 rounded-full
+           bg-ebony-950 px-4 text-white shadow-[0_10px_30px_-8px_rgb(0_0_0/0.45)] ring-1 ring-white/10
+           transition-[transform,background-color,bottom,opacity] duration-300
+           hover:-translate-y-0.5 hover:bg-ebony-900 sm:right-6 sm:px-5"
+  >
+    <span class="relative inline-flex">
+      <Icon name="chat" class="h-6 w-6 text-gold-400" />
+      <Icon name="sparkle" class="absolute -right-1.5 -top-1.5 h-3 w-3 text-gold-300" />
+    </span>
+    <span class="hidden text-[0.9rem] font-semibold tracking-wide sm:inline">{t('chat.launcher')}</span>
+  </button>
+
+  <section
+    id="ptc-chat-panel"
+    data-chat-panel
+    role="dialog"
+    aria-modal="false"
+    aria-labelledby="ptc-chat-title"
+    hidden
+    class="chat-panel fixed z-[60] flex flex-col overflow-hidden bg-white
+           inset-0 sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[min(640px,calc(100dvh-3rem))] sm:w-[400px]
+           sm:rounded-lg sm:shadow-[0_24px_60px_-12px_rgb(0_0_0/0.35)] sm:ring-1 sm:ring-ebony-200"
+  >
+    <header class="flex items-center gap-3 border-b border-ebony-100 bg-ebony-950 px-4 py-3.5 text-white"
+            style="padding-top: max(0.875rem, env(safe-area-inset-top))">
+      <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-600/15 ring-1 ring-gold-500/40">
+        <Icon name="tuning" class="h-5 w-5 text-gold-400" />
+      </span>
+      <div class="min-w-0 flex-1">
+        <h2 id="ptc-chat-title" class="font-display text-[1.15rem] leading-tight text-white">{t('chat.title')}</h2>
+        <p class="mt-0.5 flex items-center gap-1.5 text-[0.75rem] text-ebony-300">
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
+          {t('chat.subtitle')}
+        </p>
+      </div>
+      <button type="button" data-chat-restart aria-label={t('chat.restart')} title={t('chat.restart')}
+              class="inline-flex h-11 w-11 items-center justify-center rounded-full text-ebony-300 transition-colors hover:bg-white/10 hover:text-white">
+        <Icon name="refresh" class="h-5 w-5" />
+      </button>
+      <button type="button" data-chat-close aria-label={t('chat.close')}
+              class="-mr-1 inline-flex h-11 w-11 items-center justify-center rounded-full text-ebony-300 transition-colors hover:bg-white/10 hover:text-white">
+        <Icon name="close" class="h-5 w-5" />
+      </button>
+    </header>
+
+    <div data-chat-log role="log" aria-live="polite" aria-relevant="additions" aria-label={t('chat.title')}
+         class="chat-log flex-1 space-y-3 overflow-y-auto overscroll-contain bg-ebony-50 px-4 py-5"></div>
+
+    <form data-chat-form class="border-t border-ebony-100 bg-white px-3 pt-3"
+          style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom))">
+      <div class="flex items-end gap-2 rounded-2xl border border-ebony-300 bg-white py-1.5 pl-4 pr-1.5 transition-colors focus-within:border-gold-600 focus-within:ring-2 focus-within:ring-gold-600/20">
+        <label for="ptc-chat-input" class="sr-only">{t('chat.inputLabel')}</label>
+        <textarea
+          id="ptc-chat-input"
+          data-chat-input
+          rows="1"
+          maxlength="600"
+          autocomplete="off"
+          enterkeyhint="send"
+          placeholder={t('chat.placeholder')}
+          class="max-h-32 min-h-[2.25rem] flex-1 resize-none border-0 bg-transparent py-1.5 text-[16px] leading-snug text-ebony-900 placeholder:text-ebony-400 focus:outline-none"
+        ></textarea>
+        <button type="submit" data-chat-send aria-label={t('chat.send')}
+                class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold-600 text-white transition-colors hover:bg-gold-700 disabled:cursor-not-allowed disabled:bg-ebony-200 disabled:text-ebony-400">
+          <Icon name="send" class="h-5 w-5" />
+        </button>
+      </div>
+      <p class="px-1 pb-1 pt-2 text-center text-[0.75rem] leading-snug text-ebony-500">
+        {t('chat.disclaimer')}{' '}
+        <a href={path('privacy', locale)} class="link-underline whitespace-nowrap">{t('chat.privacy')}</a>
+      </p>
+    </form>
+  </section>
+</div>
+
+<script type="application/json" id="ptc-chat-config" set:html={configJson}></script>
+
+<script>
+  // Load the conversation logic on first sign of intent, not on page load.
+  const root = document.querySelector<HTMLElement>('[data-chat-root]');
+  const launcher = root?.querySelector<HTMLButtonElement>('[data-chat-launcher]');
+
+  if (root && launcher) {
+    let loading: Promise<typeof import('../scripts/chat')> | null = null;
+    // A failed load (flaky connection) is forgotten, so the next try refetches.
+    const load = () =>
+      (loading ??= import('../scripts/chat').catch((e) => {
+        loading = null;
+        throw e;
+      }));
+    const warm = () => { load().catch(() => {}); };
+
+    // Warm the chunk early so the first tap feels instant.
+    launcher.addEventListener('pointerenter', warm, { once: true });
+    launcher.addEventListener('focus', warm, { once: true });
+    launcher.addEventListener('touchstart', warm, { once: true, passive: true });
+
+    // If the chat can't load at all (offline, a deploy mid-visit), show the
+    // direct contact options in place — never navigate away, which could
+    // throw out a half-filled booking form.
+    const fallback = () => {
+      const cfg = JSON.parse(document.getElementById('ptc-chat-config')?.textContent || '{}');
+      const panel = root.querySelector<HTMLElement>('[data-chat-panel]');
+      const log = root.querySelector<HTMLElement>('[data-chat-log]');
+      if (!panel || !log || !cfg.strings) return;
+      const p = document.createElement('p');
+      p.className = 'rounded-2xl bg-white px-4 py-3 text-[0.95rem] text-ebony-800 ring-1 ring-ebony-200/70';
+      p.textContent = cfg.strings.error;
+      const links = document.createElement('div');
+      links.className = 'flex flex-wrap gap-2';
+      for (const [href, label] of [[`tel:${cfg.phone}`, cfg.strings.actionCall], [`https://wa.me/${cfg.whatsapp}`, cfg.strings.actionWhatsapp]]) {
+        const a = document.createElement('a');
+        a.href = href;
+        a.textContent = label;
+        a.className = 'inline-flex min-h-[44px] items-center rounded-full bg-ebony-950 px-4 py-2 text-[0.875rem] font-semibold text-white';
+        links.append(a);
+      }
+      log.replaceChildren(p, links);
+      root.querySelector('[data-chat-form]')?.setAttribute('hidden', '');
+      root.dataset.state = 'open';
+      panel.hidden = false;
+      const close = () => { panel.hidden = true; root.dataset.state = 'closed'; launcher.focus(); };
+      root.querySelector('[data-chat-close]')?.addEventListener('click', close, { once: true });
+      links.querySelector('a')?.focus();
+    };
+
+    // Ignore further taps while the chunk is loading, or a double tap would
+    // open the chat and immediately close it.
+    let pending = false;
+    launcher.addEventListener('click', async () => {
+      if (pending) return;
+      pending = true;
+      try {
+        (await load().catch(() => load())).toggle(root);
+      } catch {
+        fallback();
+      } finally {
+        pending = false;
+      }
+    });
+  }
+</script>
+
+<style is:global>
+  /* Launcher clears the mobile call bar when that bar is on screen. */
+  .chat-launcher { bottom: max(1rem, env(safe-area-inset-bottom)); }
+  /* Same breakpoint as the bar's own lg:hidden (64rem), so it tracks the
+     browser's font size just as the bar does. */
+  @media (width < 64rem) {
+    html[data-callbar='shown'] .chat-launcher {
+      bottom: calc(60px + env(safe-area-inset-bottom) + 0.75rem);
+    }
+  }
+  @media (min-width: 640px) { .chat-launcher { bottom: 1.5rem; } }
+
+  [data-chat-root][data-state='open'] .chat-launcher { opacity: 0; pointer-events: none; transform: scale(0.9); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .chat-panel[data-anim='in'] { animation: chat-in 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+    @keyframes chat-in {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: none; }
+    }
+    .chat-dot { animation: chat-dot 1.2s infinite ease-in-out; }
+    .chat-dot:nth-child(2) { animation-delay: 0.15s; }
+    .chat-dot:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes chat-dot {
+      0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+      40% { opacity: 1; transform: translateY(-3px); }
+    }
+  }
+  @media (min-width: 640px) { .chat-panel { transform-origin: bottom right; } }
+
+  .chat-msg p + p, .chat-msg p + ul, .chat-msg ul + p { margin-top: 0.6em; }
+  .chat-msg ul { list-style: disc; padding-left: 1.15em; }
+  .chat-msg li + li { margin-top: 0.2em; }
+  .chat-msg a { text-decoration: underline; text-underline-offset: 3px; }
+</style>

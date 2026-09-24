@@ -47,6 +47,15 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
           ],
         },
         {
+          heading: 'The chat assistant',
+          paras: [
+            'The chat window on this site is an automated AI assistant, not Kleanthis. It answers questions about our services, prices and coverage using only the information published on this website. It cannot see the diary or book anything, and what you type there does not reach us. To contact Kleanthis, use the booking form, phone or WhatsApp.',
+            'When you send a message, the conversation and the address of the page you are reading are sent to Cloudflare, Inc., which runs the AI model for us (Cloudflare Workers AI) as a data processor under its Data Processing Addendum. They are used only to write the reply and are not used to train AI models. We do not keep a record of conversations and cannot read them. Your IP address is used to limit how many messages can be sent per minute and per day, which protects the service from abuse; for the daily limit it is kept only as a pseudonymised code (a keyed hash, never the address itself) and deleted within 48 hours, together with the key needed to produce it. Technical error logs, which contain no message content, are kept for a few days. Cloudflare may process data outside the EEA; such transfers rely on the EU–US Data Privacy Framework or, otherwise, the EU standard contractual clauses (Decision 2021/914).',
+            'The conversation is also kept in your own browser\'s session storage so that it follows you from page to page. It is deleted when you close the tab, or immediately when you press the restart button in the chat. Please do not type personal details into the chat.',
+            'The lawful basis is our legitimate interest in answering visitors\' questions quickly (Article 6(1)(f) GDPR) or, where you ask about work you want done, taking steps at your request before a contract (Article 6(1)(b)). Using the chat is entirely optional. The assistant can make mistakes and cannot make or confirm bookings.',
+          ],
+        },
+        {
           heading: 'How long we keep it',
           paras: [
             'Enquiries that do not lead to work are deleted within 12 months. Records relating to completed work — what was done to which instrument and when — are kept for as long as we service that piano, because a technician needs the instrument\'s history to look after it properly. Invoicing records are kept for the period required by Cypriot tax law.',
@@ -55,7 +64,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
         {
           heading: 'Who else sees your data',
           paras: [
-            'Your enquiry is received through our website host\'s form handling and our email provider, and is read only by Kleanthis Christoforou. These providers act as data processors on our behalf and are bound to process the data only on our instructions.',
+            'Your enquiry is received through our website host\'s form handling and our email provider, and is read only by Kleanthis Christoforou. If you use the chat assistant, your messages are processed by Cloudflare, Inc., as described above. These providers act as data processors on our behalf and are bound to process the data only on our instructions.',
             'We do not transfer your personal data outside the European Economic Area, except where a provider listed above does so under an adequacy decision or standard contractual clauses.',
           ],
         },
@@ -98,6 +107,15 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
           ],
         },
         {
+          heading: 'Ο ψηφιακός βοηθός (chat)',
+          paras: [
+            'Το παράθυρο συνομιλίας της ιστοσελίδας είναι αυτοματοποιημένος βοηθός τεχνητής νοημοσύνης, όχι ο Κλεάνθης. Απαντά σε ερωτήσεις για τις υπηρεσίες, τις τιμές και τις περιοχές που καλύπτουμε, χρησιμοποιώντας μόνο τις πληροφορίες που δημοσιεύονται σε αυτή την ιστοσελίδα. Δεν έχει πρόσβαση στο πρόγραμμα, δεν μπορεί να κάνει κράτηση, και ό,τι γράφετε εκεί δεν φτάνει σε εμάς. Για να επικοινωνήσετε με τον Κλεάνθη, χρησιμοποιήστε τη φόρμα κράτησης, το τηλέφωνο ή το WhatsApp.',
+            'Όταν στέλνετε μήνυμα, η συνομιλία και η διεύθυνση της σελίδας που διαβάζετε αποστέλλονται στην Cloudflare, Inc., η οποία εκτελεί για λογαριασμό μας το μοντέλο τεχνητής νοημοσύνης (Cloudflare Workers AI) ως εκτελούσα την επεξεργασία, βάσει της Σύμβασης Επεξεργασίας Δεδομένων της. Χρησιμοποιούνται μόνο για τη σύνταξη της απάντησης και δεν χρησιμοποιούνται για την εκπαίδευση μοντέλων τεχνητής νοημοσύνης. Δεν τηρούμε αρχείο των συνομιλιών και δεν μπορούμε να τις διαβάσουμε. Η διεύθυνση IP σας χρησιμοποιείται για να περιορίζεται ο αριθμός μηνυμάτων ανά λεπτό και ανά ημέρα, ώστε η υπηρεσία να προστατεύεται από κατάχρηση· για το ημερήσιο όριο τηρείται μόνο ως ψευδωνυμοποιημένος κωδικός (κρυπτογραφικό αποτύπωμα με κλειδί, ποτέ η ίδια η διεύθυνση) και διαγράφεται εντός 48 ωρών, μαζί με το κλειδί που απαιτείται για τη δημιουργία του. Τεχνικά αρχεία σφαλμάτων, χωρίς περιεχόμενο μηνυμάτων, τηρούνται για λίγες ημέρες. Η Cloudflare ενδέχεται να επεξεργάζεται δεδομένα εκτός ΕΟΧ· οι διαβιβάσεις αυτές βασίζονται στο Πλαίσιο Προστασίας Δεδομένων ΕΕ–ΗΠΑ ή, διαφορετικά, στις τυποποιημένες συμβατικές ρήτρες της ΕΕ (Απόφαση 2021/914).',
+            'Η συνομιλία φυλάσσεται επίσης στην προσωρινή μνήμη συνεδρίας (session storage) του δικού σας browser, ώστε να σας ακολουθεί από σελίδα σε σελίδα. Διαγράφεται όταν κλείσετε την καρτέλα, ή αμέσως με το κουμπί επανεκκίνησης της συνομιλίας. Παρακαλούμε μην γράφετε προσωπικά στοιχεία στη συνομιλία.',
+            'Η νομική βάση είναι το έννομο συμφέρον μας να απαντάμε γρήγορα στις ερωτήσεις των επισκεπτών (άρθρο 6(1)(στ) ΓΚΠΔ) ή, όταν ρωτάτε για εργασία που θέλετε να γίνει, η λήψη μέτρων κατόπιν αιτήματός σας πριν από τη σύναψη σύμβασης (άρθρο 6(1)(β)). Η χρήση της συνομιλίας είναι εντελώς προαιρετική. Ο βοηθός μπορεί να κάνει λάθη και δεν μπορεί να κάνει ή να επιβεβαιώσει κρατήσεις.',
+          ],
+        },
+        {
           heading: 'Πόσο καιρό τα κρατάμε',
           paras: [
             'Αιτήματα που δεν οδηγούν σε εργασία διαγράφονται εντός 12 μηνών. Αρχεία σχετικά με ολοκληρωμένες εργασίες — τι έγινε σε ποιο όργανο και πότε — τηρούνται όσο συντηρούμε το συγκεκριμένο πιάνο, γιατί ο τεχνικός χρειάζεται το ιστορικό του οργάνου για να το φροντίζει σωστά. Τα φορολογικά παραστατικά τηρούνται για το διάστημα που ορίζει η κυπριακή νομοθεσία.',
@@ -106,7 +124,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
         {
           heading: 'Ποιος άλλος βλέπει τα δεδομένα σας',
           paras: [
-            'Το αίτημά σας λαμβάνεται μέσω της υπηρεσίας φορμών του παρόχου φιλοξενίας και του παρόχου email μας, και το διαβάζει μόνο ο Κλεάνθης Χριστοφόρου. Οι πάροχοι αυτοί ενεργούν ως εκτελούντες την επεξεργασία για λογαριασμό μας και δεσμεύονται να επεξεργάζονται τα δεδομένα μόνο κατόπιν εντολής μας.',
+            'Το αίτημά σας λαμβάνεται μέσω της υπηρεσίας φορμών του παρόχου φιλοξενίας και του παρόχου email μας, και το διαβάζει μόνο ο Κλεάνθης Χριστοφόρου. Αν χρησιμοποιήσετε τον ψηφιακό βοηθό, τα μηνύματά σας επεξεργάζεται η Cloudflare, Inc., όπως περιγράφεται παραπάνω. Οι πάροχοι αυτοί ενεργούν ως εκτελούντες την επεξεργασία για λογαριασμό μας και δεσμεύονται να επεξεργάζονται τα δεδομένα μόνο κατόπιν εντολής μας.',
             'Δεν διαβιβάζουμε τα προσωπικά σας δεδομένα εκτός του Ευρωπαϊκού Οικονομικού Χώρου, εκτός εάν κάποιος από τους παραπάνω παρόχους το πράττει βάσει απόφασης επάρκειας ή τυποποιημένων συμβατικών ρητρών.',
           ],
         },
@@ -153,6 +171,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
           heading: 'What your browser may still store',
           paras: [
             'Your browser caches fonts, images and stylesheets so that pages load faster on your next visit. That is ordinary browser caching, not tracking, and you can clear it at any time from your browser settings.',
+            'If you use the chat assistant, your conversation is kept in your browser\'s session storage so it follows you between pages. It never leaves your device except to answer your messages, holds no identifier, and is deleted when you close the tab. Because it only exists to provide the chat you asked for, it needs no consent.',
             'If you follow a link from this site to Facebook, Instagram or WhatsApp, those services set their own cookies under their own policies, over which we have no control.',
           ],
         },
@@ -181,6 +200,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
           heading: 'Τι μπορεί να αποθηκεύει ο browser σας',
           paras: [
             'Ο browser σας αποθηκεύει προσωρινά γραμματοσειρές, εικόνες και αρχεία στυλ ώστε οι σελίδες να φορτώνουν ταχύτερα στην επόμενη επίσκεψη. Πρόκειται για συνηθισμένη προσωρινή αποθήκευση, όχι παρακολούθηση, και μπορείτε να την καθαρίσετε οποτεδήποτε από τις ρυθμίσεις του browser.',
+            'Αν χρησιμοποιήσετε τον ψηφιακό βοηθό, η συνομιλία φυλάσσεται στην προσωρινή μνήμη συνεδρίας (session storage) του browser σας ώστε να σας ακολουθεί από σελίδα σε σελίδα. Δεν φεύγει από τη συσκευή σας παρά μόνο για να απαντηθούν τα μηνύματά σας, δεν περιέχει αναγνωριστικό, και διαγράφεται όταν κλείσετε την καρτέλα. Επειδή υπάρχει μόνο για να λειτουργήσει η συνομιλία που ζητήσατε, δεν απαιτεί συγκατάθεση.',
             'Αν ακολουθήσετε σύνδεσμο προς Facebook, Instagram ή WhatsApp, οι υπηρεσίες αυτές τοποθετούν δικά τους cookies βάσει των δικών τους πολιτικών, τις οποίες δεν ελέγχουμε.',
           ],
         },

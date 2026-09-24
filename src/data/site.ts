@@ -12,6 +12,7 @@ export const site = {
 
   technician: {
     name: 'Kleanthis Christoforou',
+    nameEl: 'Κλεάνθης Χριστοφόρου',
     jobTitle: { en: 'Piano Technician', el: 'Τεχνικός Πιάνου' },
   },
 
@@ -56,6 +57,16 @@ export const site = {
     ga4: '', // leave empty unless the owner wants GA4 (then a consent banner is required)
   },
 
+
+  /**
+   * AI chat assistant backend — the Cloudflare Worker in chat-worker/.
+   * Empty = the assistant is not rendered at all. Its origin must also be in
+   * the CSP connect-src (public/_headers and netlify.toml).
+   * PUBLIC_CHAT_ENDPOINT overrides it for local testing only.
+   */
+  chat: {
+    endpoint: import.meta.env.PUBLIC_CHAT_ENDPOINT || 'https://pianotuningscy-chat.aroditis-andreas.workers.dev/',
+  },
 
   /**
    * Form handling for a static site.

@@ -139,6 +139,72 @@ Cloudflare Pages reads the same two files. For Vercel, port `netlify.toml` to
 
 ---
 
+## Chat assistant
+
+A bilingual AI assistant answers questions about services, prices, areas and hours,
+then hands visitors to Kleanthis (Call / WhatsApp / pre-filled booking form). It is
+free to run, with no catch: no card is on file anywhere, so the worst case is that it
+pauses for the day. It can never produce a bill.
+
+| Piece | Where | What it does |
+|---|---|---|
+| Widget | `src/components/ChatWidget.astro`, `src/scripts/chat.ts` | Launcher + panel. The logic loads only when a visitor shows intent, so page speed is unaffected. |
+| Knowledge | `src/pages/chat-knowledge.json.ts` → `/chat-knowledge.json` | Generated from `site.ts`, `services.ts` and `faq.ts` at build time. Change a price, push, and the assistant knows. |
+| Backend | `chat-worker/` (Cloudflare Worker) | Validates, rate-limits, builds the prompt, streams the model's reply. Logs no message content; stores only a pseudonymised daily answer count per visitor, deleted after 48 h. |
+
+**Model.** Chosen by a blind review of real customer questions in English, Greek,
+Greeklish and Cypriot dialect (`chat-worker/test/`):
+- `@cf/google/gemma-4-26b-a4b-it` (thinking disabled): best grounding and English, no
+  safety failures, about 35–55 Neurons an answer (≈200–300 answers a day).
+- Fallback `@cf/openai/gpt-oss-120b`: the strongest Greek of the candidates, about 3.4×
+  the cost; used only if Gemma errors, stalls, or returns no text before replying.
+
+Greek questions get the site's own Greek copy as knowledge (`knowledgeEl`), which
+lifted Greek quality from 5.6 to 7.8/10 in review. Both models are set in
+`chat-worker/wrangler.toml` (`MODELS`); per-model parameters live in
+`chat-worker/src/prompt.ts`.
+
+**Why it's free.** Workers AI through the Worker's `AI` binding, on a Cloudflare
+account on the **Workers Free** plan: 10,000 Neurons a day, roughly 200–300 answers.
+Past that, requests fail until 00:00 UTC (02:00/03:00 in Cyprus) and the widget shows
+Call / WhatsApp / Book instead. Nothing is billed because there is nothing to bill.
+
+**Never:**
+- Upgrade that Cloudflare account to Workers Paid, or enable AI Gateway credits or
+  unified billing. Either one turns "pauses for the day" into "charges per message".
+- Use a Paid-only model (Kimi, GLM, DeepSeek-V4).
+- Route the chat through a Netlify proxy (it buffers streams and cuts them at 26 s).
+- Log message content, or turn on Worker invocation logs.
+
+**Deploying the Worker:**
+
+```bash
+cd chat-worker && npm install && npm test && npx wrangler deploy
+```
+
+Then set `chat.endpoint` in `src/data/site.ts` to the `workers.dev` URL it prints, and
+add that origin to `connect-src` in both `public/_headers` and `netlify.toml`. An empty
+`endpoint` hides the assistant entirely.
+
+**Abuse limits** (none of them about money — the free allowance can never become a
+bill; they keep the assistant available for real visitors): 6 answers a minute per
+visitor, 20 a minute site-wide, and 40 a day per visitor (IPv6 counted per /64). The
+daily counts live in a Durable Object under pseudonyms (HMAC with a random daily secret),
+deleted with the secret after 48 hours.
+
+**Evaluating a prompt or model change** (spends real Neurons):
+
+```bash
+cd chat-worker && node test/eval.mjs --models @cf/google/gemma-4-26b-a4b-it --out /tmp/eval.json
+```
+
+**Behaviour rules** (facts only from the knowledge file, no invented prices, no
+bookings, replies in the visitor's language, discloses that it is an AI) live in the
+system prompt in `chat-worker/src/prompt.ts`. The AI Act disclosure is also in the
+widget's welcome message and footer; the privacy and cookie policies describe it.
+
+---
+
 ## Known next steps
 
 - **Education/guides section.** The audit found zero technical-authority content and

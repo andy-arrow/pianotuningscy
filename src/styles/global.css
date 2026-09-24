@@ -41,8 +41,12 @@
   /* Header breakpoints in `em`, not px: a media query's em tracks the user's
      browser font-size setting, so raising it collapses the header to the
      hamburger rather than pushing it off-screen. 64em/40em = 1024px/640px at
-     the default 16px. */
+     the default 16px.
+     Greek labels run longer: its full header row measures 1,025px against
+     English's ~860px, so Greek keeps the hamburger until 72em (1,152px, where
+     the row reaches its 1,088px cap) instead of wrapping. */
   --breakpoint-hdr: 64em;
+  --breakpoint-hdr-el: 72em;
   --breakpoint-tel: 40em;
 
   --radius-card: 0.25rem;
@@ -105,6 +109,8 @@
     border-radius: 2px;
   }
 
+  /* Page scroll locks: header menu and chat assistant each set their own. */
+  html[data-lock-menu], html[data-lock-chat] { overflow: hidden; }
   ::selection { background: var(--color-gold-200); color: var(--color-ebony-900); }
 
   /* Greek copy sits a touch larger — Greek lowercase runs optically smaller */

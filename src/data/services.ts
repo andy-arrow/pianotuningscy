@@ -424,6 +424,8 @@ export const services: Service[] = [
     elSlug: 'kalymmata-pianou',
     icon: 'cover',
     price: 200,
+    // The page's own copy says "from €200 depending on the size".
+    priceFrom: true,
     duration: 15,
     featured: false,
     image: 'handmade-piano-cover.jpg',

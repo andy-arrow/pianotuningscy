@@ -127,5 +127,42 @@ for h in pianotuningscy.com www.pianotuningscy.com; do
   case "$s" in *"does match"*) ok "cert valid for $h" "ok";; *) bad "cert for $h" "$s";; esac
 done
 
+hdr "12. Chat assistant"
+CHAT="https://pianotuningscy-chat.aroditis-andreas.workers.dev"
+k=$(curl -s --max-time 25 "$CANON/chat-knowledge.json")
+echo "$k" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "€100" in d["knowledge"] and "piano-tuning" in d["serviceSlugs"]' 2>/dev/null \
+  && ok "/chat-knowledge.json" "valid, has prices" || bad "/chat-knowledge.json" "missing or malformed"
+echo "$H" | grep -i "^content-security-policy:" | grep -q "$CHAT" \
+  && ok "CSP allows the chat Worker" "connect-src" || bad "CSP" "chat Worker not in connect-src"
+for p in / /el/; do
+  curl -s --max-time 25 "$CANON$p" | grep -q "ptc-chat-config" \
+    && ok "widget on $p" "present" || bad "widget on $p" "missing"
+done
+h=$(curl -s --max-time 25 "$CHAT/health")
+case "$h" in *'"ok":true'*) ok "Worker /health" "knowledge reachable";; *) bad "Worker /health" "$h";; esac
+c=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 -X POST -H "Origin: https://evil.example" --data '{}' "$CHAT/")
+[ "$c" = "403" ] && ok "Worker refuses other sites" "403" || bad "Worker foreign origin" "$c"
+c=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 -X POST -H "Origin: $CANON" --data 'not json' "$CHAT/")
+[ "$c" = "400" ] && ok "Worker rejects bad input" "400" || bad "Worker bad input" "$c"
+# One real question end to end (~40 of the 10,000 free daily Neurons). NO_AI=1 skips it.
+if [ "${NO_AI:-0}" != "1" ]; then
+  r=$(curl -sN --max-time 60 -w '\n%{http_code}' -X POST -H "Origin: $CANON" -H 'Content-Type: text/plain;charset=UTF-8' \
+      --data '{"messages":[{"role":"user","content":"How much is a standard piano tuning?"}],"locale":"en","page":"/"}' "$CHAT/")
+  code=${r##*$'\n'}; body=${r%$'\n'*}
+  txt=$(printf '%s' "$body" | python3 -c 'import json,sys
+raw=sys.stdin.read(); out=""
+for ev in raw.split("\n\n"):
+    if ev.startswith("data: "):
+        d=json.loads(ev[6:]); out+=d.get("t","")
+        if "error" in d: out+="[ERROR:"+d["error"]+"]"
+if not out:
+    try: out="[ERROR:"+json.loads(raw).get("error","?")+"]"
+    except Exception: pass
+print(out)' 2>/dev/null)
+  case "$txt" in *"ERROR:quota"*) ok "AI answers" "paused: daily free allowance used (expected fail-closed)";;
+                 *"100"*) ok "AI answers" "streams, quotes €100";;
+                 *) bad "AI answers" "HTTP $code ${txt:0:120}";; esac
+fi
+
 printf "\n\033[1m%d passed, %d failed\033[0m\n" "$pass" "$fail"
 exit $([ "$fail" -eq 0 ] && echo 0 || echo 1)

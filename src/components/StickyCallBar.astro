@@ -59,6 +59,8 @@ const t = useTranslations(locale);
       requestAnimationFrame(() => {
         const show = window.scrollY > window.innerHeight * 0.6;
         bar.classList.toggle('translate-y-full', !show);
+        // Lets the chat launcher lift clear of the bar while it's showing.
+        document.documentElement.dataset.callbar = show ? 'shown' : 'hidden';
         ticking = false;
       });
     };

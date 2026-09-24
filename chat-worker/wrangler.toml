@@ -1,0 +1,60 @@
+# Piano Tunings Cy — chat assistant Worker.
+#
+# MUST run on a Cloudflare account on the Workers FREE plan. On Free there is
+# no card on file, so exceeding the daily AI allowance can only ever cause the
+# assistant to pause until 00:00 UTC — never a bill. (On Workers Paid, the same
+# usage would be charged. Don't upgrade the account that hosts this.)
+
+name = "pianotuningscy-chat"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+workers_dev = true
+preview_urls = false
+
+[ai]
+binding = "AI"
+
+# Per-visitor burst limit (per IP, per Cloudflare location).
+[[ratelimits]]
+name = "PER_IP"
+namespace_id = "7301"
+  [ratelimits.simple]
+  limit = 6
+  period = 60
+
+# Whole-site ceiling on how fast the day's allowance can be spent.
+[[ratelimits]]
+name = "GLOBAL"
+namespace_id = "7302"
+  [ratelimits.simple]
+  limit = 20
+  period = 60
+
+# Per-visitor daily answer cap (see DAILY_PER_VISITOR). SQLite-backed Durable
+# Objects are included in the Workers Free plan.
+[[durable_objects.bindings]]
+name = "DAILY"
+class_name = "DailyAllowance"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["DailyAllowance"]
+
+[vars]
+# Chosen by a blind review of 64 real answers (Sept 2026, chat-worker/test):
+# Gemma 4 — best grounding and English, no safety failures, ~33 Neurons an
+# answer in English, ~54 in Greek (≈200–300 answers a day). Fallback gpt-oss-120b — best Greek of the three, ~3.4×
+# the cost, used only if Gemma errors, stalls or returns no text. Mistral
+# Small 3.1 was dropped: weakest Greek. Never list a Paid-only model here
+# (Kimi, GLM-5.x, DeepSeek-V4: error 5035).
+MODELS = "@cf/google/gemma-4-26b-a4b-it,@cf/openai/gpt-oss-120b"
+KNOWLEDGE_URL = "https://pianotuningscy.com/chat-knowledge.json"
+ALLOWED_ORIGINS = "https://pianotuningscy.com,https://www.pianotuningscy.com"
+
+# Only the Worker's own console.error lines (never message content).
+# Per-request invocation logs are off: they would record visitors' IPs.
+[observability]
+enabled = true
+  [observability.logs]
+  enabled = true
+  invocation_logs = false

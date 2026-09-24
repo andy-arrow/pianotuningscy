@@ -15,11 +15,19 @@ const { locale, alternates, transparent = false } = Astro.props;
 const t = useTranslations(locale);
 const here = Astro.url.pathname;
 
+// Where the full nav replaces the hamburger. Greek needs more room (see
+// --breakpoint-hdr-el); both class sets are spelled out so Tailwind sees them.
+// The Book button fits either way, so it keeps the plain hdr breakpoint.
+const bp =
+  locale === 'el'
+    ? { show: 'hdr-el:block', hide: 'hdr-el:hidden' }
+    : { show: 'hdr:block', hide: 'hdr:hidden' };
+
 const nav = [
   { key: 'nav.services', href: path('services', locale) },
   { key: 'nav.about', href: path('about', locale) },
   { key: 'nav.reviews', href: path('reviews', locale) },
-  { key: 'nav.faq', href: path('faq', locale) },
+  { key: 'nav.faqShort', href: path('faq', locale) },
   { key: 'nav.contact', href: path('contact', locale) },
 ] as const;
 
@@ -53,7 +61,7 @@ const isActive = (href: string) =>
         />
       </a>
 
-      <nav class="hidden hdr:block" aria-label={t('a11y.mainNav')}>
+      <nav class:list={['hidden', bp.show]} aria-label={t('a11y.mainNav')}>
         <ul class="flex items-center gap-1">
           {
             nav.map((item) => (
@@ -106,8 +114,18 @@ const isActive = (href: string) =>
           class="hidden min-h-[44px] items-center gap-2 rounded-sm px-3.5 py-2.5 text-sm font-semibold text-ebony-800 transition-colors hover:bg-ebony-100 tel:inline-flex"
         >
           <Icon name="phone" class="h-4 w-4" />
-          <span class="hidden xl:inline">{site.phoneDisplay}</span>
-          <span class="xl:hidden">{t('cta.call')}</span>
+          {
+            // The number is ~65px wider than the label; Greek has no room for
+            // it (the header row is capped at 1,088px), so it keeps the label.
+            locale === 'el' ? (
+              <span>{t('cta.call')}</span>
+            ) : (
+              <>
+                <span class="hidden xl:inline">{site.phoneDisplay}</span>
+                <span class="xl:hidden">{t('cta.call')}</span>
+              </>
+            )
+          }
         </a>
 
         <a
@@ -124,7 +142,7 @@ const isActive = (href: string) =>
           aria-expanded="false"
           aria-controls="mobile-menu"
           aria-label={t('nav.open')}
-          class="inline-flex h-11 w-11 items-center justify-center rounded-sm text-ebony-900 transition-colors hover:bg-ebony-100 hdr:hidden"
+          class:list={['inline-flex h-11 w-11 items-center justify-center rounded-sm text-ebony-900 transition-colors hover:bg-ebony-100', bp.hide]}
         >
           <Icon name="menu" class="h-6 w-6" data-icon-menu />
           <Icon name="close" class="hidden h-6 w-6" data-icon-close />
@@ -133,7 +151,7 @@ const isActive = (href: string) =>
     </div>
   </div>
 
-  <div id="mobile-menu" data-menu-panel hidden class="border-t border-ebony-200 bg-white hdr:hidden">
+  <div id="mobile-menu" data-menu-panel hidden class:list={['border-t border-ebony-200 bg-white', bp.hide]}>
     <nav class="container-x py-5" aria-label={t('a11y.mainNav')}>
       <ul class="flex flex-col divide-y divide-ebony-100">
         {
@@ -196,20 +214,27 @@ const isActive = (href: string) =>
       panel.hidden = !open;
       iconMenu?.classList.toggle('hidden', open);
       iconClose?.classList.toggle('hidden', !open);
-      document.documentElement.style.overflow = open ? 'hidden' : '';
+      // Its own flag (see global.css), so the chat assistant's lock and this
+      // one can never release each other.
+      if (open) document.documentElement.dataset.lockMenu = '';
+      else delete document.documentElement.dataset.lockMenu;
       syncSolid();
     };
 
     btn.addEventListener('click', () => setOpen(btn.getAttribute('aria-expanded') !== 'true'));
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') {
+        // Claimed, so the chat assistant doesn't also close on the same key.
+        e.preventDefault();
         setOpen(false);
         btn.focus();
       }
     });
     panel.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    // Same breakpoints as --breakpoint-hdr / --breakpoint-hdr-el.
+    const wide = document.documentElement.lang.startsWith('el') ? '72em' : '64em';
     window
-      .matchMedia('(min-width: 64em)')
+      .matchMedia(`(min-width: ${wide})`)
       .addEventListener('change', (e) => e.matches && setOpen(false));
 
     if (isTransparent) {
