@@ -14,6 +14,9 @@ globalThis.fetch = async (url) => {
 
 const { default: worker, DailyAllowance, visitorKey, prefix56 } = await import('../src/index.ts');
 const { replyLanguage, cyprusNow, cyprusDay } = await import('../src/prompt.ts');
+// The widget's own stream reader: the Worker passes the model's stream
+// through, and the browser unpacks it with exactly this code.
+const { parseEvent, cleanGlyphs, strayPattern } = await import('../../src/scripts/chat-text.ts');
 
 // The real DailyAllowance class over an in-memory storage, one per "day" name.
 function fakeDaily() {
@@ -66,9 +69,11 @@ function makeEnv({ run, allow = () => true, stallMs, daily = fakeDaily() } = {})
       GLOBAL: { limit: async ({ key }) => { limits.push(['global', key]); return { success: allow('global', key) }; } },
       DAILY: daily,
       AI: {
+        // With returnRawResponse the binding hands back an HTTP Response.
         run: async (model, inputs, opts) => {
           calls.push({ model, inputs, opts });
-          return run(model, inputs, opts);
+          const out = await run(model, inputs, opts);
+          return out instanceof ReadableStream ? new Response(out, { headers: { 'Content-Type': 'text/event-stream' } }) : out;
         },
       },
     },
@@ -98,9 +103,28 @@ const post = (body, origin = 'https://pianotuningscy.com', ip = '203.0.113.9') =
 async function events(res) {
   return events_(res);
 }
+// Reads a response as the widget does: a JSON error, or the passed-through
+// stream unpacked into its text, then {done} or {error}.
 async function events_(res) {
-  const text = await res.text();
-  return text.split('\n\n').filter(Boolean).map((l) => JSON.parse(l.replace(/^data: /, '')));
+  if (!(res.headers.get('Content-Type') || '').includes('event-stream')) return [await res.json()];
+  const raw = (await res.text()).replace(/\r/g, '');
+  let text = '';
+  let done = false;
+  let error;
+  for (const ev of raw.split('\n\n')) {
+    for (const line of ev.split('\n')) {
+      if (!line.startsWith('data:') || !line.slice(5).trim()) continue;
+      const e = parseEvent(line.slice(5).trim());
+      if (e.error) error = e.error;
+      if (e.text) text += e.text;
+      if (e.done) done = true;
+    }
+  }
+  const out = [];
+  if (text) out.push({ t: text });
+  if (error) out.push({ error });
+  else if (done) out.push({ done: true });
+  return out;
 }
 
 const ask = { messages: [{ role: 'user', content: 'How much is a tuning?' }], locale: 'en', page: '/services/' };
@@ -122,7 +146,7 @@ await test('streams OpenAI-style deltas as {t}, ends with {done}, drops reasonin
   assert.equal(res.headers.get('Access-Control-Allow-Origin'), 'https://pianotuningscy.com');
   assert.match(res.headers.get('Content-Type'), /text\/event-stream/);
   const ev = await events(res);
-  assert.deepEqual(ev, [{ t: 'A tuning is ' }, { t: '**€100**. [[BOOK:piano-tuning]]' }, { done: true }]);
+  assert.deepEqual(ev, [{ t: 'A tuning is **€100**. [[BOOK:piano-tuning]]' }, { done: true }]);
   const c = calls[0];
   assert.equal(c.model, '@cf/google/gemma-4-26b-a4b-it');
   assert.deepEqual(c.inputs.chat_template_kwargs, { enable_thinking: false });
@@ -131,6 +155,7 @@ await test('streams OpenAI-style deltas as {t}, ends with {done}, drops reasonin
   assert.equal(c.inputs.max_tokens, undefined);
   assert.equal(c.inputs.stream, true);
   assert.equal(c.opts.rejectIfBusy, true);
+  assert.equal(c.opts.returnRawResponse, true);
   assert.ok(c.opts.signal instanceof AbortSignal);
   assert.equal(c.inputs.messages[0].role, 'system');
   assert.match(c.inputs.messages[0].content, /Piano tuning: €100\./);
@@ -153,7 +178,18 @@ await test('fast text path: escapes, reasoning dropped, many events in one chunk
 
 await test('legacy {response} shape is normalised too', async () => {
   const { env } = makeEnv({ run: () => sse([{ response: 'Γεια' }, { response: ' σας' }, '[DONE]']) });
-  assert.deepEqual(await events(await worker.fetch(post(ask), env, ctx)), [{ t: 'Γεια' }, { t: ' σας' }, { done: true }]);
+  assert.deepEqual(await events(await worker.fetch(post(ask), env, ctx)), [{ t: 'Γεια σας' }, { done: true }]);
+});
+
+await test('the model stream reaches the visitor byte for byte (no per-token work in the Worker)', async () => {
+  const raw = [
+    { choices: [{ delta: { content: '', role: 'assistant' } }], usage: { prompt_tokens: 3321, neurons: 30.2 } },
+    { choices: [{ delta: { content: 'Κούρδισμα €100' } }] },
+  ].map((e) => `data: ${JSON.stringify(e)}\n\n`).join('') + 'data: [DONE]\n\n';
+  const { env } = makeEnv({ run: () => new Response(raw, { headers: { 'Content-Type': 'text/event-stream' } }) });
+  const res = await worker.fetch(post(ask), env, ctx);
+  assert.equal(res.status, 200);
+  assert.equal(await res.text(), raw);
 });
 
 await test('falls back to the second model when the first errors before streaming', async () => {
@@ -226,13 +262,37 @@ await test('Greek questions get the Greek facts; English ones the English facts'
   assert.match(calls[1].inputs.messages[0].content, /Piano tuning: €100/);
 });
 
-await test('stray glyphs from unrelated scripts are removed; the visitor’s own script is kept', async () => {
-  const { env } = makeEnv({ run: () => sse([{ response: 'Καλिसπέρα σας' }, '[DONE]']) });
-  assert.deepEqual(await events(await worker.fetch(post({ ...ask, messages: [{ role: 'user', content: 'Γεια' }] }), env, ctx)),
-    [{ t: 'Καλπέρα σας' }, { done: true }]);
-  const ru = makeEnv({ run: () => sse([{ response: 'Настройка стоит €100' }, '[DONE]']) });
-  assert.deepEqual(await events(await worker.fetch(post({ ...ask, messages: [{ role: 'user', content: 'Сколько стоит?' }] }), ru.env, ctx)),
-    [{ t: 'Настройка стоит €100' }, { done: true }]);
+await test('widget: stray glyphs are removed, the greeting glitch repaired, the visitor’s own script kept', async () => {
+  const greek = strayPattern('Kalispera, poso kostizei?');
+  assert.equal(cleanGlyphs('Καλिसπέρα σας. €100 — «ναι» 👍 café', greek), 'Καλησπέρα σας. €100 — «ναι» 👍 café');
+  assert.equal(cleanGlyphs('Καλिमέρα!', greek), 'Καλημέρα!');
+  assert.equal(cleanGlyphs('x देव y', greek), 'x  y');
+  assert.equal(cleanGlyphs('Ελληνικά ά ΐ ῶ ;·', greek), 'Ελληνικά ά ΐ ῶ ;·');
+  assert.equal(cleanGlyphs('Настройка стоит €100', strayPattern('Сколько стоит?')), 'Настройка стоит €100');
+});
+
+await test('widget: reads every Workers AI stream shape and the Worker’s own events', async () => {
+  assert.deepEqual(parseEvent('[DONE]'), { done: true });
+  assert.deepEqual(parseEvent(JSON.stringify({ choices: [{ delta: { content: 'a' } }] })), { text: 'a' });
+  assert.deepEqual(parseEvent(JSON.stringify({ choices: [{ delta: { reasoning_content: 'hmm', content: null } }] })), {});
+  assert.deepEqual(parseEvent(JSON.stringify({ response: 'b' })), { text: 'b' });
+  assert.deepEqual(parseEvent(JSON.stringify({ choices: [{ text: 'c' }] })), { text: 'c' });
+  assert.deepEqual(parseEvent(JSON.stringify({ type: 'response.output_text.delta', delta: 'd' })), { text: 'd' });
+  assert.deepEqual(parseEvent(JSON.stringify({ type: 'response.completed' })), { done: true });
+  assert.deepEqual(parseEvent(JSON.stringify({ type: 'error', error: { message: 'x' } })), { error: 'upstream' });
+  assert.deepEqual(parseEvent(JSON.stringify({ t: 'e' })), { text: 'e' });
+  assert.deepEqual(parseEvent(JSON.stringify({ error: 'quota' })), { error: 'quota' });
+  assert.deepEqual(parseEvent('not json'), {});
+});
+
+await test('allowance used up, reported as an HTTP error on the raw response → quota', async () => {
+  const { env, calls } = makeEnv({
+    run: () => new Response(JSON.stringify({ success: false, errors: [{ code: 4006, message: 'you have used up your daily free allocation of 10,000 neurons' }] }), { status: 429 }),
+  });
+  const res = await worker.fetch(post(ask), env, ctx);
+  assert.equal(res.status, 503);
+  assert.deepEqual(await res.json(), { error: 'quota' });
+  assert.equal(calls.length, 1);
 });
 
 await test('daily allowance used up → quota, and no fallback is attempted', async () => {
@@ -479,14 +539,9 @@ await test('reply language: Greek script, Greeklish majority, English majority',
   for (const [m, locale, want] of cases) assert.equal(replyLanguage(m, locale), want, m);
 });
 
-await test('a script used earlier in the conversation is kept in the reply', async () => {
-  const { env } = makeEnv({ run: () => sse([{ response: 'Настройка стоит €100' }, '[DONE]']) });
-  const body = { ...ask, messages: [
-    { role: 'user', content: 'Сколько стоит настройка?' },
-    { role: 'assistant', content: 'Настройка стоит €100.' },
-    { role: 'user', content: 'ok, and in Paphos?' },
-  ] };
-  assert.deepEqual(await events(await worker.fetch(post(body), env, ctx)), [{ t: 'Настройка стоит €100' }, { done: true }]);
+await test('widget: a script used earlier in the conversation is kept in the reply', async () => {
+  const conversation = ['Сколько стоит настройка?', 'Настройка стоит €100.', 'ok, and in Paphos?'].join('\n');
+  assert.equal(cleanGlyphs('Настройка стоит €100', strayPattern(conversation)), 'Настройка стоит €100');
 });
 
 await test('health endpoint reports knowledge and models', async () => {

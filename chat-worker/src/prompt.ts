@@ -85,7 +85,7 @@ export function strayScriptPattern(text: string): RegExp {
  * made it invent "offices", so the hours are given as a full sentence.
  */
 const GREEK_NOTES = `
-Greek grammar to get right: η Κυριακή (την Κυριακή), το Σάββατο, η Πάφος (την Πάφο, της Πάφου), η Λεμεσός (τη Λεμεσό), το πιάνο (του πιάνου, τα πιάνα), το κούρδισμα (του κουρδίσματος), η αρμονική, το καρφόξυλο. Opening hours: «Ο Κλεάνθης εργάζεται Δευτέρα – Παρασκευή, 09:00 – 17:00· το Σάββατο και την Κυριακή δεν εργάζεται.» Give no reason for the hours. Write every word fully in Greek letters.`;
+Greek grammar to get right: ο Κλεάνθης, τον/του Κλεάνθη (never «τον Κλεάνθης»), η Κυριακή (την Κυριακή), το Σάββατο, η Πάφος (την Πάφο, της Πάφου), η Λεμεσός (τη Λεμεσό), το πιάνο (του πιάνου, τα πιάνα), το κούρδισμα (του κουρδίσματος), η αρμονική, το καρφόξυλο. Opening hours: «Ο Κλεάνθης εργάζεται Δευτέρα – Παρασκευή, 09:00 – 17:00· το Σάββατο και την Κυριακή δεν εργάζεται.» Give no reason for the hours. Write every word fully in Greek letters.`;
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',

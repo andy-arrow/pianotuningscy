@@ -16,6 +16,8 @@
  * visitor somewhere that does not exist.
  */
 
+import { cleanGlyphs, parseEvent, strayPattern } from './chat-text';
+
 type Role = 'user' | 'assistant';
 interface Msg { role: Role; content: string }
 interface Action { type: 'CALL' | 'WHATSAPP' | 'BOOK' | 'SERVICE'; slug?: string }
@@ -458,7 +460,22 @@ function setup(root: HTMLElement) {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+      const stray = strayPattern(messages.map((m) => m.content).join('\n'));
       let buffer = '';
+
+      // The Worker passes the model's stream straight through; it is unpacked
+      // here, in the browser, which keeps the Worker inside its 10 ms CPU
+      // budget (see chat-text.ts).
+      const handle = (payload: string): boolean => {
+        const ev = parseEvent(payload);
+        if (ev.error) throw new ChatError(ev.error);
+        const text = cleanGlyphs(ev.text ?? '', stray);
+        if (text) {
+          firstToken = true;
+          onDelta(text);
+        }
+        return !!ev.done;
+      };
 
       for (;;) {
         let chunk: ReadableStreamReadResult<Uint8Array>;
@@ -469,7 +486,7 @@ function setup(root: HTMLElement) {
           throw e;
         }
         if (chunk.done) break;
-        buffer += decoder.decode(chunk.value, { stream: true });
+        buffer += decoder.decode(chunk.value, { stream: true }).replace(/\r/g, '');
 
         let cut: number;
         while ((cut = buffer.indexOf('\n\n')) !== -1) {
@@ -478,20 +495,15 @@ function setup(root: HTMLElement) {
           for (const line of event.split('\n')) {
             if (!line.startsWith('data:')) continue;
             const payload = line.slice(5).trim();
-            if (!payload) continue;
-            let data: { t?: string; done?: boolean; error?: string };
-            try { data = JSON.parse(payload); } catch { continue; }
-            if (data.error) {
-              throw new ChatError(['rate', 'daily', 'quota', 'invalid'].includes(data.error)
-                ? (data.error as 'rate' | 'daily' | 'quota' | 'invalid') : 'upstream');
+            if (payload && handle(payload)) {
+              reader.cancel().catch(() => {});
+              return;
             }
-            if (typeof data.t === 'string' && data.t) {
-              firstToken = true;
-              onDelta(data.t);
-            }
-            if (data.done) return;
           }
         }
+      }
+      for (const line of buffer.split('\n')) {
+        if (line.startsWith('data:') && line.slice(5).trim() && handle(line.slice(5).trim())) return;
       }
     } finally {
       clearTimeout(timer);

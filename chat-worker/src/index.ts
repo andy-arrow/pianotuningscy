@@ -12,12 +12,14 @@
  *     of the IP address with a random daily secret — never the address
  *     itself), deleted together with that secret after 48 hours.
  *
- * Protocol (independent of the model behind it):
+ * Protocol:
  *   POST { messages: [{ role, content }], locale: 'en' | 'el', page: '/path/' }
- *   → text/event-stream of
- *       data: {"t":"delta"}   data: {"done":true}   data: {"error":"kind"}
- *   Errors before streaming are JSON { error } with a 4xx/5xx status.
+ *   → the model's own text/event-stream, passed through untouched, or JSON
+ *     { error: kind } with a 4xx/5xx status before streaming starts.
  *   kind: rate | daily | quota | invalid | forbidden | upstream
+ *   The widget unpacks every Workers AI stream shape (src/scripts/chat-text.ts).
+ *   Unpacking here cost 30–58 ms of CPU per answer (measured live) against the
+ *   Free plan's 10 ms; passing the stream through leaves that to the browser.
  *
  * Sent as text/plain so the browser treats it as a simple request: no CORS
  * preflight, one round trip fewer. The body is parsed as JSON regardless.
@@ -27,7 +29,7 @@
  * a price or FAQ changes.
  */
 
-import { cyprusDay, params, replyLanguage, strayScriptPattern, systemPrompt } from './prompt.ts';
+import { cyprusDay, params, replyLanguage, systemPrompt } from './prompt.ts';
 
 export interface Env {
   AI: Ai;
@@ -39,8 +41,6 @@ export interface Env {
   KNOWLEDGE_URL: string;
   /** Comma-separated exact origins allowed to call this Worker. */
   ALLOWED_ORIGINS: string;
-  /** Local testing only ("1"): also stream token usage. Never set in wrangler.toml. */
-  DEBUG?: string;
   /** How long a model may take to start answering before the next one is tried. */
   STALL_MS?: string;
 }
@@ -142,8 +142,6 @@ export default {
     // Greek copy beats a model translating English facts on the fly.
     const lastUser = input.messages[input.messages.length - 1].content;
     const lang = replyLanguage(lastUser, input.locale);
-    // Scripts used anywhere in the conversation stay allowed in the reply.
-    const stray = strayScriptPattern(input.messages.map((m) => m.content).join('\n'));
     const system = systemPrompt(
       { text: lang === 'el' ? knowledge.textEl : knowledge.text, slugs: knowledge.slugs },
       input.locale,
@@ -164,25 +162,22 @@ export default {
       const ac = new AbortController();
       const timer = last ? null : setTimeout(() => ac.abort(new Error(`stalled: no text in ${stallMs} ms`)), stallMs);
       try {
-        const upstream = await run(env, model, system, input.messages, ac.signal);
-        let settle!: (ok: boolean) => void;
-        const firstText = new Promise<boolean>((resolve) => { settle = resolve; });
-        ctx.waitUntil(firstText.then((ok) => { if (ok) return daily(env, 'take', visitor, group); }));
-        const ts = normalise(model, stray, env.DEBUG === '1', settle);
-        // A broken upstream (or a visitor who leaves) ends the attempt too.
-        upstream.pipeTo(ts.writable).catch(() => settle(false));
-        if (!last) {
-          const aborted = new Promise<boolean>((resolve) => {
-            if (ac.signal.aborted) resolve(false);
-            ac.signal.addEventListener('abort', () => resolve(false), { once: true });
-          });
-          if (!(await Promise.race([firstText, aborted]))) {
-            ts.readable.cancel().catch(() => {});
-            throw ac.signal.aborted ? ac.signal.reason : new Error('no text before the stream ended');
-          }
+        const res = await run(env, model, system, input.messages, ac.signal);
+        if (!res.ok || !res.body) throw new Error(`HTTP ${res.status} ${(await res.text()).slice(0, 300)}`);
+        // Peek at a copy until real text appears; the other copy goes to the
+        // visitor untouched, so the Worker does no per-token work.
+        const [peek, pass] = res.body.tee();
+        let ok = false;
+        try {
+          ok = await firstTextIn(peek, ac.signal);
+        } finally {
+          // An abandoned model must stop generating (and spending allowance).
+          if (!ok) pass.cancel().catch(() => {});
         }
+        if (!ok) throw new Error('no text before the stream ended');
         if (timer) clearTimeout(timer);
-        return new Response(ts.readable, {
+        ctx.waitUntil(daily(env, 'take', visitor, group));
+        return new Response(pass, {
           headers: {
             ...cors,
             'Content-Type': 'text/event-stream; charset=utf-8',
@@ -204,6 +199,36 @@ export default {
     return fail('upstream', cors);
   },
 } satisfies ExportedHandler<Env>;
+
+/**
+ * Reads the start of a model stream until it shows real text (true), or ends,
+ * errors or is aborted before any (false/throws). Only a few chunks are ever
+ * read, then the copy is released.
+ */
+async function firstTextIn(stream: ReadableStream<Uint8Array>, signal: AbortSignal): Promise<boolean> {
+  const reader = stream.getReader();
+  const dec = new TextDecoder();
+  let seen = '';
+  const aborted = new Promise<never>((_, reject) => {
+    if (signal.aborted) reject(signal.reason);
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+  });
+  aborted.catch(() => {});
+  try {
+    for (;;) {
+      const { done, value } = await Promise.race([reader.read(), aborted]);
+      if (done) return false;
+      seen += dec.decode(value, { stream: true });
+      // A non-empty text field. "reasoning_content" can't match: its
+      // "content" follows an underscore, not a quote.
+      if (/"(?:content|response|text|delta)":"(?:[^"\\]|\\.)/.test(seen)) return true;
+      if (/\[DONE\]|"error"|"type":"(?:error|response\.failed)"/.test(seen)) return false;
+      if (seen.length > 65_536) return true;
+    }
+  } finally {
+    reader.cancel().catch(() => {});
+  }
+}
 
 /* ---------- visitors ---------- */
 
@@ -444,7 +469,11 @@ function models(env: Env): string[] {
 }
 
 type Runner = {
-  run(model: string, inputs: unknown, options?: { rejectIfBusy?: boolean; signal?: AbortSignal }): Promise<unknown>;
+  run(
+    model: string,
+    inputs: unknown,
+    options?: { rejectIfBusy?: boolean; signal?: AbortSignal; returnRawResponse?: boolean },
+  ): Promise<unknown>;
 };
 
 async function run(env: Env, model: string, system: string, messages: Msg[], signal: AbortSignal) {
@@ -458,126 +487,11 @@ async function run(env: Env, model: string, system: string, messages: Msg[], sig
   };
   // Fail fast when the model is busy, so the fallback (or a friendly error)
   // arrives in a second instead of after a long queue.
-  const out = await ai.run(model, inputs, { rejectIfBusy: true, signal });
-  if (!(out instanceof ReadableStream)) throw new Error('not a stream');
-  return out as ReadableStream<Uint8Array>;
-}
-
-/**
- * Model stream → the widget's protocol. Accepts every streaming shape Workers
- * AI produces ({response}, OpenAI chat deltas, Responses API events) and drops
- * reasoning text, so swapping models never touches the website.
- *
- * Kept lean for the Free plan's 10 ms CPU budget, of which the Workers AI
- * binding itself takes about 5 ms (measured): one output event per network
- * chunk rather than per token, and the text of OpenAI-style deltas read
- * straight out of the event without parsing its bulky usage metadata.
- * Anything unusual falls back to a full JSON.parse.
- *
- * `onFirst(true)` fires with the first text, `onFirst(false)` if the stream
- * errors or ends before any. The readable side buffers freely, so the handler
- * can wait for that verdict before anything reads it.
- */
-function normalise(
-  model: string,
-  stray: RegExp,
-  debug = false,
-  onFirst: (ok: boolean) => void = () => {},
-): TransformStream<Uint8Array, Uint8Array> {
-  const enc = new TextEncoder();
-  const dec = new TextDecoder();
-  let buffer = '';
-  let finished = false;
-  let sent = 0;
-  let decided = false;
-  const decide = (ok: boolean) => {
-    if (!decided) { decided = true; onFirst(ok); }
-  };
-
-  type Read = { text: string; end?: 'done' | 'error'; usage?: unknown };
-
-  const read = (payload: string): Read => {
-    if (payload === '[DONE]') return { text: '', end: 'done' };
-    // Fast path. `"content":"` can't match "reasoning_content", whose
-    // "content" follows an underscore, not a quote.
-    const at = debug ? -1 : payload.indexOf('"content":"');
-    if (at !== -1) {
-      let j = at + 11;
-      while (j < payload.length && payload[j] !== '"') j += payload[j] === '\\' ? 2 : 1;
-      try { return { text: JSON.parse(payload.slice(at + 10, j + 1)) as string }; } catch { /* full parse below */ }
-    }
-    let d: Record<string, any>;
-    try { d = JSON.parse(payload); } catch { return { text: '' }; }
-    const usage = debug ? d.usage : undefined;
-    if (typeof d.response === 'string') return { text: d.response, usage };
-    if (typeof d.choices?.[0]?.delta?.content === 'string') return { text: d.choices[0].delta.content, usage };
-    if (typeof d.choices?.[0]?.text === 'string') return { text: d.choices[0].text, usage };
-    if (d.type === 'response.output_text.delta' && typeof d.delta === 'string') return { text: d.delta, usage };
-    if (d.type === 'response.completed' || d.type === 'response.done') return { text: '', end: 'done' };
-    if (d.type === 'error' || d.type === 'response.failed' || d.error) {
-      console.error('stream error', model, JSON.stringify(d.error ?? d).slice(0, 300));
-      return { text: '', end: 'error' };
-    }
-    return { text: '', usage };
-  };
-
-  const emit = (c: TransformStreamDefaultController<Uint8Array>, obj: object) =>
-    c.enqueue(enc.encode(`data: ${JSON.stringify(obj)}\n\n`));
-
-  const flushText = (c: TransformStreamDefaultController<Uint8Array>, text: string) => {
-    const clean = text.replace(stray, '');
-    if (!clean) return;
-    sent += clean.length;
-    emit(c, { t: clean });
-    decide(true);
-  };
-
-  const finish = (c: TransformStreamDefaultController<Uint8Array>, how: 'done' | 'error') => {
-    finished = true;
-    if (how === 'done' && sent) emit(c, { done: true });
-    else {
-      emit(c, { error: 'upstream' });
-      decide(false);
-    }
-  };
-
-  const process = (c: TransformStreamDefaultController<Uint8Array>, events: string[]) => {
-    let text = '';
-    for (const event of events) {
-      for (const line of event.split('\n')) {
-        if (finished || !line.startsWith('data:')) continue;
-        const r = read(line.slice(5).trim());
-        if (r.usage) emit(c, { usage: r.usage, model });
-        text += r.text;
-        if (r.end) {
-          flushText(c, text);
-          text = '';
-          finish(c, r.end);
-        }
-      }
-    }
-    if (!finished) flushText(c, text);
-  };
-
-  return new TransformStream<Uint8Array, Uint8Array>(
-    {
-      transform(chunk, c) {
-        if (finished) return;
-        buffer += dec.decode(chunk, { stream: true }).replace(/\r/g, '');
-        const cut = buffer.lastIndexOf('\n\n');
-        if (cut === -1) return;
-        const complete = buffer.slice(0, cut);
-        buffer = buffer.slice(cut + 2);
-        process(c, complete.split('\n\n'));
-      },
-      flush(c) {
-        if (!finished && buffer.trim()) process(c, [buffer]);
-        if (!finished) finish(c, sent ? 'done' : 'error');
-      },
-    },
-    undefined,
-    { highWaterMark: 1_024 },
-  );
+  // The raw HTTP response: its body is the model's stream, which is passed
+  // through untouched rather than re-parsed by the binding in this Worker.
+  const out = await ai.run(model, inputs, { rejectIfBusy: true, signal, returnRawResponse: true });
+  if (!(out instanceof Response)) throw new Error('not a response');
+  return out;
 }
 
 /* ---------- errors ---------- */
