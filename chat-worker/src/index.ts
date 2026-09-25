@@ -27,7 +27,7 @@
  * a price or FAQ changes.
  */
 
-import { params, replyLanguage, strayScriptPattern, systemPrompt } from './prompt.ts';
+import { cyprusDay, params, replyLanguage, strayScriptPattern, systemPrompt } from './prompt.ts';
 
 export interface Env {
   AI: Ai;
@@ -60,7 +60,8 @@ const LIMITS = {
 };
 
 /**
- * Answers one visitor (IPv4 address, or IPv6 /64) may use per UTC day. The
+ * Answers one visitor (IPv4 address, or IPv6 /64) may use per day — the
+ * Cyprus calendar day, so the limit resets at midnight Nicosia time. The
  * per-minute limits alone would let a single script drain the whole daily
  * allowance in under an hour; with this, one source can use about a tenth.
  * An IPv6 subscriber often holds a whole /56 (256 /64s), so that is capped
@@ -241,9 +242,9 @@ export function prefix56(ip: string): string | null {
  * the hard stop either way.
  */
 async function daily(env: Env, op: 'check' | 'take', visitor: string, group: string | null): Promise<boolean> {
-  const day = new Date().toISOString().slice(0, 10);
   try {
-    const stub = env.DAILY.get(env.DAILY.idFromName(`answers:${day}`));
+    // One counter per Cyprus calendar day: a new one starts at 00:00 EEST/EET.
+    const stub = env.DAILY.get(env.DAILY.idFromName(`answers:${cyprusDay()}`));
     // The raw keys only travel to the counter, which stores keyed hashes of them.
     const res = await stub.fetch(`https://daily/${op}`, {
       method: 'POST',
@@ -257,7 +258,7 @@ async function daily(env: Env, op: 'check' | 'take', visitor: string, group: str
 }
 
 /**
- * One instance per UTC day holds that day's per-visitor answer counts under
+ * One instance per Cyprus calendar day holds that day's per-visitor answer counts under
  * pseudonyms: HMAC-SHA-256 of the visitor with a random secret created on the
  * day's first request. Two days later an alarm deletes everything, secret
  * included, after which the pseudonyms can't be linked to anyone.

@@ -1,5 +1,5 @@
 # DNS ROLLBACK SNAPSHOT — pianotuningscy.com
-# Captured 2026-09-24 05:53 UTC immediately before the Wix → Netlify cutover.
+# Captured 2026-09-24 08:53 EEST (Nicosia; 05:53 UTC) immediately before the Wix → Netlify cutover.
 # To roll back: restore the A and CNAME values below. Nothing else was changed.
 
 ## A (apex) — CHANGING to 75.2.60.5

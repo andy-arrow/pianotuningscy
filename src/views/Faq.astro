@@ -4,6 +4,8 @@ import PageHeader from '~/components/PageHeader.astro';
 import FaqAccordion from '~/components/FaqAccordion.astro';
 import CtaBand from '~/components/CtaBand.astro';
 import { faqs } from '~/data/faq';
+import { site } from '~/data/site';
+import { cyprusYear } from '~/lib/cyprusTime';
 import { alternateUrls, path, useTranslations, type Locale } from '~/i18n/ui';
 import { breadcrumbs, faqSchema } from '~/lib/schema';
 
@@ -16,16 +18,18 @@ const trail = [
   { name: t('faq.title'), url: path('faq', locale) },
 ];
 
+const years = cyprusYear() - site.foundingYear;
+
 const meta = {
   en: {
     title: 'Piano Care FAQ — Cyprus | Piano Tunings Cy',
     description:
-      'How often to tune a piano in Cyprus, what tuning costs, whether air conditioning harms a piano, moving advice and buying second-hand — answered by a technician of 14 years.',
+      `How often to tune a piano in Cyprus, what tuning costs, whether air conditioning harms a piano, moving advice and buying second-hand — answered by a technician of ${years} years.`,
   },
   el: {
     title: 'Συχνές Ερωτήσεις για το Πιάνο | Piano Tunings Cy',
     description:
-      'Κάθε πότε κουρδίζεται ένα πιάνο στην Κύπρο, πόσο κοστίζει, βλάπτει ο κλιματισμός, συμβουλές μεταφοράς και αγοράς μεταχειρισμένου — από τεχνικό 14 ετών.',
+      `Κάθε πότε κουρδίζεται ένα πιάνο στην Κύπρο, πόσο κοστίζει, βλάπτει ο κλιματισμός, συμβουλές μεταφοράς και αγοράς μεταχειρισμένου — από τεχνικό με ${years} χρόνια εμπειρίας.`,
   },
 }[locale];
 ---

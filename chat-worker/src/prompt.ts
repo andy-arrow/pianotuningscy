@@ -98,6 +98,23 @@ function lastSundayUtc(year: number, month: number): number {
 }
 
 /**
+ * A Date whose UTC fields read as Cyprus wall-clock time (EEST, UTC+3, from
+ * the last Sunday of March to the last Sunday of October; EET, UTC+2,
+ * otherwise — the EU rule, clocks changing at 01:00 UTC).
+ */
+function cyprusClock(at: Date): Date {
+  const t = at.getTime();
+  const y = at.getUTCFullYear();
+  const summer = t >= lastSundayUtc(y, 2) && t < lastSundayUtc(y, 9);
+  return new Date(t + (summer ? 3 : 2) * 3_600_000);
+}
+
+/** Today's date in Cyprus, "YYYY-MM-DD" — the day the assistant's daily limits run on. */
+export function cyprusDay(at = new Date()): string {
+  return cyprusClock(at).toISOString().slice(0, 10);
+}
+
+/**
  * Cyprus wall-clock time, e.g. "Thursday 24 September 2026, 17:08".
  * Plain arithmetic on purpose: the first Intl.DateTimeFormat with a time
  * zone loads ICU zone data, measured at ~20 ms — twice the Free plan's
@@ -105,10 +122,7 @@ function lastSundayUtc(year: number, month: number): number {
  * March to the last Sunday of October (EU rule, 01:00 UTC).
  */
 export function cyprusNow(at = new Date()): string {
-  const t = at.getTime();
-  const y = at.getUTCFullYear();
-  const summer = t >= lastSundayUtc(y, 2) && t < lastSundayUtc(y, 9);
-  const d = new Date(t + (summer ? 3 : 2) * 3_600_000);
+  const d = cyprusClock(at);
   const hh = String(d.getUTCHours()).padStart(2, '0');
   const mm = String(d.getUTCMinutes()).padStart(2, '0');
   return `${DAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}, ${hh}:${mm}`;

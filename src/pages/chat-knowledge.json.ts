@@ -4,6 +4,7 @@ import { services } from '~/data/services';
 import { faqs } from '~/data/faq';
 import { openingHoursRows } from '~/lib/hours';
 import type { Locale } from '~/i18n/ui';
+import { cyprusIso } from '~/lib/cyprusTime';
 
 /**
  * The chat assistant's knowledge, generated from the same data files that build
@@ -33,7 +34,7 @@ const L = {
       `Based in ${site.address.locality.en}, Cyprus. Covers the whole island: ` +
       `${serviceAreas.map((a) => a.en).join(', ')} district, and villages in between. ` +
       'Travel is normally included in the price, not charged separately; ask when you book.',
-    hours: 'Opening hours',
+    hours: 'Opening hours (Cyprus time)',
     contact: `Phone and WhatsApp: ${site.phoneDisplay}. Email: ${site.email}.`,
     langs: 'Speaks Greek and English.',
     payment: 'Payment is made after the work is done. Prices are agreed before any work starts.',
@@ -65,7 +66,7 @@ const L = {
       `${serviceAreas.map((a) => (a.slug === 'famagusta' ? 'επαρχία Αμμοχώστου' : a.el)).join(', ')}, ` +
       'και τα χωριά ενδιάμεσα. Τα έξοδα μετακίνησης συνήθως περιλαμβάνονται στην τιμή και δεν ' +
       'χρεώνονται ξεχωριστά· ρωτήστε κατά την κράτηση.',
-    hours: 'Ώρες λειτουργίας',
+    hours: 'Ώρες λειτουργίας (ώρα Κύπρου)',
     contact: `Τηλέφωνο και WhatsApp: ${site.phoneDisplay}. Email: ${site.email}.`,
     langs: 'Μιλά ελληνικά και αγγλικά.',
     payment:
@@ -157,7 +158,7 @@ export const GET: APIRoute = () => {
   // only use slugs from this list, which the widget also validates.
   const body = {
     version: 2,
-    generatedAt: new Date().toISOString(),
+    generatedAt: cyprusIso(),
     serviceSlugs: services.map((s) => s.slug),
     knowledge: buildKnowledge('en'),
     knowledgeEl: buildKnowledge('el'),

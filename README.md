@@ -168,9 +168,20 @@ lifted Greek quality from 5.6 to 7.8/10 in review. Both models are set in
 account on the **Workers Free** plan: 10,000 Neurons a day, roughly 200–300 answers.
 Past that, requests fail (Workers AI error 4006) and the widget shows Call / WhatsApp /
 Book instead. Nothing is billed because there is nothing to bill. Cloudflare documents
-the reset as 00:00 UTC, but after the launch-day overrun (13,189 Neurons, allowed through
-before the cutoff caught up) the pause lasted well past midnight UTC, so the widget names
-no reset time.
+the reset as 00:00 UTC, which is 03:00 in Cyprus in summer (EEST) and 02:00 in winter
+(EET); Cloudflare sets it and it can't be changed. After the launch-day overrun (13,189
+Neurons, allowed through before the cutoff caught up) the pause lasted well past 03:00
+Cyprus time, so the widget names no reset time.
+
+**Time zone.** Everything this project controls runs on Cyprus time (Asia/Nicosia):
+the per-visitor daily limit resets at midnight in Nicosia, the assistant is told the
+Nicosia time, and dates printed on the site (legal "last updated", © year, years in
+business) are Nicosia dates. Netlify and GitHub builds run with `TZ=Asia/Nicosia`.
+Only third-party clocks stay outside Cyprus time and can't be changed: Cloudflare's daily
+allowances and logs (UTC), Netlify's monthly allowance (resets on the 1st at 00:00 US
+Pacific, i.e. 10:00 in Cyprus, 09:00 on 1 November), Netlify/GitHub logs and HTTP
+headers (UTC). Printed dates are fixed at build time; the © year and years in business
+are corrected in the browser after New Year even without a rebuild.
 
 **Never:**
 - Upgrade that Cloudflare account to Workers Paid, or enable AI Gateway credits or
@@ -191,7 +202,8 @@ add that origin to `connect-src` in both `public/_headers` and `netlify.toml`. A
 
 **Abuse limits** (none of them about money — the free allowance can never become a
 bill; they keep the assistant available for real visitors): 6 answers a minute per
-visitor, 20 a minute site-wide, and 40 a day per visitor (IPv6 counted per /64, with a
+visitor, 20 a minute site-wide, and 40 a day per visitor, the day ending at midnight
+Nicosia time (IPv6 counted per /64, with a
 further 120 a day per /56, since one subscriber often holds 256 /64s). The daily counts
 live in a Durable Object under pseudonyms (HMAC with a random daily secret), deleted with
 the secret after 48 hours. Many unrelated addresses (VPN, Tor) can still use up a day's

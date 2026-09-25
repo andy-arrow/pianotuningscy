@@ -10,6 +10,11 @@
 import type { Locale } from '~/i18n/ui';
 
 export interface LegalDoc {
+  /**
+   * Date of the last change to this document's text, in Cyprus (YYYY-MM-DD).
+   * Update it whenever the wording changes — not on every deploy.
+   */
+  revised: string;
   title: Record<Locale, string>;
   description: Record<Locale, string>;
   sections: Record<Locale, { heading: string; paras: string[] }[]>;
@@ -17,6 +22,7 @@ export interface LegalDoc {
 
 export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
   privacy: {
+    revised: '2026-09-24',
     title: { en: 'Privacy policy', el: 'Πολιτική απορρήτου' },
     description: {
       en: 'How Piano Tunings Cy collects, uses, stores and protects your personal data under the GDPR — what we hold, why, for how long, and your rights.',
@@ -147,6 +153,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
   },
 
   cookies: {
+    revised: '2026-09-24',
     title: { en: 'Cookie policy', el: 'Πολιτική cookies' },
     description: {
       en: 'This website sets no tracking or advertising cookies. Here is exactly what it does and does not store.',
@@ -215,6 +222,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
   },
 
   terms: {
+    revised: '2026-09-23',
     title: { en: 'Terms of service', el: 'Όροι υπηρεσίας' },
     description: {
       en: 'The terms on which Piano Tunings Cy provides tuning, repair, restoration, transport and rental services in Cyprus.',

@@ -1,4 +1,5 @@
 ---
+import { cyprusYear } from '~/lib/cyprusTime';
 import { Image } from 'astro:assets';
 import { site } from '~/data/site';
 import { useTranslations, path, type Locale } from '~/i18n/ui';
@@ -8,7 +9,7 @@ import hero from '~/assets/images/kleanthis-tuning-concert-grand.jpg';
 interface Props { locale: Locale }
 const { locale } = Astro.props;
 const t = useTranslations(locale);
-const years = new Date().getFullYear() - site.foundingYear;
+const years = cyprusYear() - site.foundingYear;
 ---
 
 <section class="relative isolate -mt-20 flex min-h-[86svh] items-end overflow-hidden bg-ebony-950 lg:-mt-24 lg:min-h-[92svh]">
@@ -59,7 +60,7 @@ const years = new Date().getFullYear() - site.foundingYear;
         <div>
           <dt class="sr-only">{t('home.trustYears')}</dt>
           <dd>
-            <span class="block font-display text-[2.1rem] leading-none text-gold-400">{years}</span>
+            <span class="block font-display text-[2.1rem] leading-none text-gold-400" data-cy-since={site.foundingYear}>{years}</span>
             <span class="mt-1.5 block text-[0.8rem] leading-tight text-ebony-300">{t('home.trustYears')}</span>
           </dd>
         </div>

@@ -13,13 +13,15 @@ globalThis.fetch = async (url) => {
 };
 
 const { default: worker, DailyAllowance, visitorKey, prefix56 } = await import('../src/index.ts');
-const { replyLanguage, cyprusNow } = await import('../src/prompt.ts');
+const { replyLanguage, cyprusNow, cyprusDay } = await import('../src/prompt.ts');
 
 // The real DailyAllowance class over an in-memory storage, one per "day" name.
 function fakeDaily() {
   const objects = new Map();
+  const names = [];
   return {
-    idFromName: (name) => name,
+    names,
+    idFromName: (name) => { names.push(name); return name; },
     get: (name) => {
       if (!objects.has(name)) {
         const data = new Map();
@@ -348,6 +350,16 @@ await test('each visitor gets at most 40 answers a day; others are unaffected', 
   assert.equal(other.status, 200);
 });
 
+await test('the daily counter used is the one for today in Cyprus', async () => {
+  const daily = fakeDaily();
+  const { env } = makeEnv({ run: () => sse([{ response: 'ok' }, '[DONE]']), daily });
+  const res = await worker.fetch(post(ask), env, ctx);
+  await res.text();
+  await flush();
+  assert.ok(daily.names.length >= 2, 'check and count both reach the counter');
+  for (const n of daily.names) assert.equal(n, `answers:${cyprusDay()}`);
+});
+
 await test('the daily counter stores pseudonyms, never addresses, and forgets after 48 h', async () => {
   const data = new Map();
   let alarm = null;
@@ -491,6 +503,26 @@ await test('Greek replies get the Greek grammar notes; English ones do not', asy
   const k = { text: 'K', slugs: ['piano-tuning'] };
   assert.match(systemPrompt(k, 'el', '/el/', 'el'), /Greek grammar to get right/);
   assert.doesNotMatch(systemPrompt(k, 'en', '/', 'en'), /Greek grammar to get right/);
+});
+
+await test('the daily limit runs on the Cyprus calendar day (midnight Nicosia time)', async () => {
+  assert.equal(cyprusDay(new Date('2026-09-24T20:59:00Z')), '2026-09-24'); // 23:59 EEST
+  assert.equal(cyprusDay(new Date('2026-09-24T21:00:00Z')), '2026-09-25'); // 00:00 EEST
+  assert.equal(cyprusDay(new Date('2026-12-31T21:59:00Z')), '2026-12-31'); // 23:59 EET
+  assert.equal(cyprusDay(new Date('2026-12-31T22:00:00Z')), '2027-01-01'); // 00:00 EET
+  // Midnights around both clock changes (25 Oct 2026, 29 Mar 2026).
+  assert.equal(cyprusDay(new Date('2026-10-24T20:59:00Z')), '2026-10-24');
+  assert.equal(cyprusDay(new Date('2026-10-24T21:00:00Z')), '2026-10-25');
+  assert.equal(cyprusDay(new Date('2026-10-25T21:59:00Z')), '2026-10-25');
+  assert.equal(cyprusDay(new Date('2026-10-25T22:00:00Z')), '2026-10-26');
+  assert.equal(cyprusDay(new Date('2026-03-28T21:59:00Z')), '2026-03-28');
+  assert.equal(cyprusDay(new Date('2026-03-28T22:00:00Z')), '2026-03-29');
+  assert.equal(cyprusDay(new Date('2026-03-29T20:59:00Z')), '2026-03-29');
+  assert.equal(cyprusDay(new Date('2026-03-29T21:00:00Z')), '2026-03-30');
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Nicosia' });
+  for (let t = Date.UTC(2026, 0, 1); t < Date.UTC(2028, 0, 1); t += 3_600_000 * 13) {
+    assert.equal(cyprusDay(new Date(t)), fmt.format(new Date(t)), new Date(t).toISOString());
+  }
 });
 
 await test('Cyprus time without Intl matches the real time zone, DST edges included', async () => {

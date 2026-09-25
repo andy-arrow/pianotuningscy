@@ -335,15 +335,6 @@ function setup(root: HTMLElement) {
     return out;
   }
 
-  /** This site's per-visitor daily cap resets at 00:00 UTC; say when that is in Cyprus. */
-  function resetTime(): string {
-    const now = new Date();
-    const reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-    return new Intl.DateTimeFormat(cfg.locale === 'el' ? 'el-GR' : 'en-GB', {
-      timeZone: 'Asia/Nicosia', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-    }).format(reset);
-  }
-
   async function submit(raw: string) {
     const text = raw.trim();
     if (!text || busy) return;
@@ -422,10 +413,10 @@ function setup(root: HTMLElement) {
       const kind = err instanceof ChatError ? err.kind : 'network';
       const contact: Action[] = [{ type: 'CALL' }, { type: 'WHATSAPP' }, { type: 'BOOK' }];
       if (kind === 'rate') renderNotice(S.rate);
-      // No time given: Cloudflare documents a 00:00 UTC reset, but on the first
-      // night the pause outlasted it by hours.
+      // No time given: Cloudflare documents a reset at 03:00 Cyprus time
+      // (00:00 UTC), but on the first night the pause outlasted it by hours.
       else if (kind === 'quota') renderNotice(S.quota, contact);
-      else if (kind === 'daily') renderNotice(S.daily.replace('{time}', resetTime()), contact);
+      else if (kind === 'daily') renderNotice(S.daily, contact);
       else renderNotice(S.error, [{ type: 'CALL' }, { type: 'WHATSAPP' }]);
     } finally {
       busy = false;

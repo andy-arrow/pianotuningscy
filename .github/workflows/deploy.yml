@@ -31,6 +31,7 @@ jobs:
       - run: npm ci
       - name: Build (preview mode)
         env:
+          TZ: Asia/Nicosia
           PREVIEW_SITE: https://andy-arrow.github.io
           PREVIEW_BASE: /pianotuningscy
           PUBLIC_PREVIEW: 'true'

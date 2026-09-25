@@ -1,4 +1,5 @@
 ---
+import { cyprusLongDate } from '~/lib/cyprusTime';
 import Base from '~/layouts/Base.astro';
 import PageHeader from '~/components/PageHeader.astro';
 import { legalDocs } from '~/data/legal';
@@ -15,10 +16,9 @@ const trail = [
   { name: d.title[locale], url: path(doc, locale) },
 ];
 
-// Stamped at build time so the revision date is always the real one.
-const revised = new Date().toLocaleDateString(locale === 'el' ? 'el-CY' : 'en-GB', {
-  year: 'numeric', month: 'long', day: 'numeric',
-});
+// The date the text last changed (legal.ts), shown as a Cyprus date — not
+// the build date, which would move with every deploy.
+const revised = cyprusLongDate(locale, new Date(`${d.revised}T12:00:00+03:00`));
 ---
 
 <Base

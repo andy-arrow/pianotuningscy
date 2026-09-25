@@ -7,6 +7,8 @@
 
 [build.environment]
   NODE_VERSION = "24"
+  # Build in Cyprus time (EEST/EET), like everything else on the site.
+  TZ = "Asia/Nicosia"
 
 # Security headers — the legacy Wix site set none of these.
 [[headers]]

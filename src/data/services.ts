@@ -3,6 +3,12 @@
  * Services without a price are quoted per instrument — that is honest and expected in this trade.
  */
 
+import { site } from '~/data/site';
+import { cyprusYear } from '~/lib/cyprusTime';
+
+/** Years in business, counted in Cyprus time at build — never hard-coded. */
+const YEARS = cyprusYear() - site.foundingYear;
+
 export interface Service {
   /** English slug — also the canonical id. */
   slug: string;
@@ -104,7 +110,7 @@ export const services: Service[] = [
       name: 'Piano Repairs & Regulation',
       tagline: 'Making the action do what your fingers ask',
       metaDescription:
-        'Piano repairs and action regulation across Cyprus. Sticking keys, broken hammers, worn dampers and uneven touch put right by a technician of 14 years.',
+        `Piano repairs and action regulation across Cyprus. Sticking keys, broken hammers, worn dampers and uneven touch put right by a technician of ${YEARS} years.`,
       summary:
         'Sticking keys, broken hammers, worn dampers, uneven touch, buzzing notes — diagnosed and put right.',
       body: [
@@ -323,7 +329,7 @@ export const services: Service[] = [
       name: 'Piano Evaluation',
       tagline: 'An independent opinion before you buy, sell or insure',
       metaDescription:
-        'Independent piano evaluation in Cyprus, €30. Written condition and value assessment for buying, selling, insurance or probate — from a technician of 14 years.',
+        `Independent piano evaluation in Cyprus, €30. Written condition and value assessment for buying, selling, insurance or probate — from a technician of ${YEARS} years.`,
       summary:
         'An independent condition and value assessment for buying, selling, insurance or inheritance.',
       body: [

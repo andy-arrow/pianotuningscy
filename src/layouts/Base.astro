@@ -199,5 +199,16 @@ const jsonLd = graph([
         setTimeout(revealAll, 4000);
       })();
     </script>
+    {/* Keeps the © year and years-in-business right in Cyprus time after
+        New Year, even if the site hasn't been rebuilt since. */}
+    <script is:inline>
+      try {
+        const y = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Nicosia', year: 'numeric' }).format(new Date());
+        if (y > 2000) {
+          for (const el of document.querySelectorAll('[data-cy-year]')) el.textContent = String(y);
+          for (const el of document.querySelectorAll('[data-cy-since]')) el.textContent = String(y - Number(el.getAttribute('data-cy-since')));
+        }
+      } catch (e) {}
+    </script>
   </body>
 </html>
