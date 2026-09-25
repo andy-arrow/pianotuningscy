@@ -149,13 +149,22 @@ if [ "${NO_AI:-0}" != "1" ]; then
   r=$(curl -sN --max-time 60 -w '\n%{http_code}' -X POST -H "Origin: $CANON" -H 'Content-Type: text/plain;charset=UTF-8' \
       --data '{"messages":[{"role":"user","content":"How much is a standard piano tuning?"}],"locale":"en","page":"/"}' "$CHAT/")
   code=${r##*$'\n'}; body=${r%$'\n'*}
+  # The Worker passes the model's stream through; read it as the widget does.
   txt=$(printf '%s' "$body" | python3 -c 'import json,sys
-raw=sys.stdin.read(); out=""
+raw=sys.stdin.read().replace("\r",""); out=""
 for ev in raw.split("\n\n"):
-    if ev.startswith("data: "):
-        d=json.loads(ev[6:]); out+=d.get("t","")
-        if "error" in d: out+="[ERROR:"+d["error"]+"]"
-        if d.get("done"): out+="[END]"
+    for line in ev.split("\n"):
+        if not line.startswith("data:"): continue
+        p=line[5:].strip()
+        if p=="[DONE]": out+="[END]"; continue
+        try: d=json.loads(p)
+        except Exception: continue
+        if isinstance(d.get("error"),str): out+="[ERROR:"+d["error"]+"]"; continue
+        if d.get("error") or d.get("type") in ("error","response.failed"): out+="[ERROR:upstream]"; continue
+        if d.get("done") or d.get("type") in ("response.completed","response.done"): out+="[END]"; continue
+        c=(d.get("choices") or [{}])[0]
+        t=d.get("t") or d.get("response") or (c.get("delta") or {}).get("content") or c.get("text") or ""
+        out+=t if isinstance(t,str) else ""
 if not out:
     try: out="[ERROR:"+json.loads(raw).get("error","?")+"]"
     except Exception: pass
