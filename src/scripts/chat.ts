@@ -335,7 +335,7 @@ function setup(root: HTMLElement) {
     return out;
   }
 
-  /** The daily allowance resets at 00:00 UTC; say when that is in Cyprus. */
+  /** This site's per-visitor daily cap resets at 00:00 UTC; say when that is in Cyprus. */
   function resetTime(): string {
     const now = new Date();
     const reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
@@ -422,7 +422,9 @@ function setup(root: HTMLElement) {
       const kind = err instanceof ChatError ? err.kind : 'network';
       const contact: Action[] = [{ type: 'CALL' }, { type: 'WHATSAPP' }, { type: 'BOOK' }];
       if (kind === 'rate') renderNotice(S.rate);
-      else if (kind === 'quota') renderNotice(S.quota.replace('{time}', resetTime()), contact);
+      // No time given: Cloudflare documents a 00:00 UTC reset, but on the first
+      // night the pause outlasted it by hours.
+      else if (kind === 'quota') renderNotice(S.quota, contact);
       else if (kind === 'daily') renderNotice(S.daily.replace('{time}', resetTime()), contact);
       else renderNotice(S.error, [{ type: 'CALL' }, { type: 'WHATSAPP' }]);
     } finally {

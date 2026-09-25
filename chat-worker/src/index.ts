@@ -4,7 +4,7 @@
  * Why this is free, with no catch:
  *   - Models run on Workers AI through the `AI` binding. No API key exists to
  *     leak, and on the Workers Free plan there is no card on file — when the
- *     daily allowance runs out, requests fail until midnight UTC. Nothing is
+ *     daily allowance runs out, requests fail until Cloudflare lifts it. Nothing is
  *     ever billed. The widget then shows Call / WhatsApp instead.
  *   - Cloudflare does not train models on Workers AI inputs or outputs.
  *   - No message content is stored or logged. The only thing kept is a
@@ -67,7 +67,7 @@ const LIMITS = {
  * too — generously, since mobile carriers share pools among customers. None
  * of this stops a determined attacker with many unrelated addresses; that
  * would take a challenge such as Turnstile. The worst case remains the chat
- * pausing until midnight UTC, never a bill.
+ * pausing until the daily allowance is back, never a bill.
  */
 const DAILY_PER_VISITOR = 40;
 const DAILY_PER_V6_56 = 120;
@@ -122,7 +122,11 @@ export default {
     const input = await parse(request);
     if (!input) return fail('invalid', cors);
 
-    if (!(await takeDaily(env, visitor, prefix56(ip)))) return fail('daily', cors);
+    // Checked now, counted only once an answer actually starts (below), so
+    // attempts that fail — e.g. while the free allowance is paused — never
+    // use up a visitor's daily answers.
+    const group = prefix56(ip);
+    if (!(await daily(env, 'check', visitor, group))) return fail('daily', cors);
     if (!(await env.GLOBAL.limit({ key: 'all' })).success) return fail('rate', cors);
 
     let knowledge: Knowledge;
@@ -162,6 +166,7 @@ export default {
         const upstream = await run(env, model, system, input.messages, ac.signal);
         let settle!: (ok: boolean) => void;
         const firstText = new Promise<boolean>((resolve) => { settle = resolve; });
+        ctx.waitUntil(firstText.then((ok) => { if (ok) return daily(env, 'take', visitor, group); }));
         const ts = normalise(model, stray, env.DEBUG === '1', settle);
         // A broken upstream (or a visitor who leaves) ends the attempt too.
         upstream.pipeTo(ts.writable).catch(() => settle(false));
@@ -230,20 +235,23 @@ export function prefix56(ip: string): string | null {
   return `${g.slice(0, 3).map((x) => x.toString(16)).join(':')}:${(g[3] & 0xff00).toString(16)}::/56`;
 }
 
-async function takeDaily(env: Env, visitor: string, group: string | null): Promise<boolean> {
+/**
+ * 'check': may this visitor get another answer today? 'take': count one.
+ * Fails open: this cap protects availability, and the free allowance remains
+ * the hard stop either way.
+ */
+async function daily(env: Env, op: 'check' | 'take', visitor: string, group: string | null): Promise<boolean> {
   const day = new Date().toISOString().slice(0, 10);
   try {
-    const stub = env.DAILY.get(env.DAILY.idFromName(day));
+    const stub = env.DAILY.get(env.DAILY.idFromName(`answers:${day}`));
     // The raw keys only travel to the counter, which stores keyed hashes of them.
-    const res = await stub.fetch('https://daily/take', {
+    const res = await stub.fetch(`https://daily/${op}`, {
       method: 'POST',
       body: JSON.stringify({ visitor, limit: DAILY_PER_VISITOR, group, groupLimit: DAILY_PER_V6_56 }),
     });
     return (await res.text()) === '1';
   } catch (e) {
-    // Fail open: this cap protects availability, and the free allowance
-    // remains the hard stop either way.
-    console.error('daily counter unavailable', String(e));
+    console.error('daily counter unavailable', op, String(e));
     return true;
   }
 }
@@ -289,9 +297,13 @@ export class DailyAllowance {
     // interleave (Durable Object input gates) and no count is lost.
     const used = (await this.state.storage.get<number>(id)) ?? 0;
     const groupUsed = gid ? ((await this.state.storage.get<number>(gid)) ?? 0) : 0;
-    if (used >= limit || (gid && groupUsed >= (groupLimit ?? Infinity))) return new Response('0');
-    await this.state.storage.put(gid ? { [id]: used + 1, [gid]: groupUsed + 1 } : { [id]: used + 1 });
-    return new Response('1');
+    if (new URL(request.url).pathname === '/take') {
+      await this.state.storage.put(gid ? { [id]: used + 1, [gid]: groupUsed + 1 } : { [id]: used + 1 });
+      return new Response('1');
+    }
+    // A few concurrent requests can each pass the check before any is
+    // counted; overshooting by one or two answers is harmless.
+    return new Response(used < limit && (!gid || groupUsed < (groupLimit ?? Infinity)) ? '1' : '0');
   }
 
   async alarm() {

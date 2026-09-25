@@ -2,7 +2,7 @@
 #
 # MUST run on a Cloudflare account on the Workers FREE plan. On Free there is
 # no card on file, so exceeding the daily AI allowance can only ever cause the
-# assistant to pause until 00:00 UTC — never a bill. (On Workers Paid, the same
+# assistant to pause until Cloudflare lifts the daily limit — never a bill. (On Workers Paid, the same
 # usage would be charged. Don't upgrade the account that hosts this.)
 
 name = "pianotuningscy-chat"

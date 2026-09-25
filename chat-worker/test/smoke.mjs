@@ -73,7 +73,11 @@ function makeEnv({ run, allow = () => true, stallMs, daily = fakeDaily() } = {})
     limits,
   };
 }
-const ctx = { waitUntil() {}, passThroughOnException() {} };
+// Background work (the daily count) is collected so tests can wait for it,
+// as the runtime would finish it before the next request needs it.
+const background = [];
+const ctx = { waitUntil(p) { background.push(p); }, passThroughOnException() {} };
+const flush = async () => { while (background.length) await background.shift(); };
 
 // Browsers always send Content-Length with a string body; Node's Request
 // doesn't add it, so the helper does, as the Worker requires it.
@@ -308,6 +312,7 @@ await test('one IPv6 /56 is capped at 120 answers a day however many /64s it rot
     const res = await worker.fetch(post(ask, undefined, ip), env, ctx);
     if (res.status === 200) answered++;
     await res.text();
+    await flush();
   }
   assert.equal(answered, 120);
   assert.equal(calls.length, 120);
@@ -330,6 +335,7 @@ await test('each visitor gets at most 40 answers a day; others are unaffected', 
     const res = await worker.fetch(post(ask, undefined, '198.51.100.7'), env, ctx);
     assert.equal(res.status, 200, `answer ${i + 1}`);
     await res.text();
+    await flush();
   }
   const globalBefore = limits.filter((l) => l[0] === 'global').length;
   const over = await worker.fetch(post(ask, undefined, '198.51.100.7'), env, ctx);
@@ -349,14 +355,36 @@ await test('the daily counter stores pseudonyms, never addresses, and forgets af
     get: async (k) => data.get(k), put: async (k, v) => { if (typeof k === 'object') for (const [a, b] of Object.entries(k)) data.set(a, b); else data.set(k, v); },
     getAlarm: async () => alarm, setAlarm: async (t) => { alarm = t; }, deleteAll: async () => data.clear(),
   } });
-  const take = () => obj.fetch(new Request('https://daily/take', { method: 'POST', body: JSON.stringify({ visitor: '198.51.100.7', limit: 2 }) })).then((r) => r.text());
-  assert.deepEqual([await take(), await take(), await take()], ['1', '1', '0']);
+  const call = (op) => obj.fetch(new Request(`https://daily/${op}`, { method: 'POST', body: JSON.stringify({ visitor: '198.51.100.7', limit: 2 }) })).then((r) => r.text());
+  assert.equal(await call('check'), '1');
+  await call('take');
+  assert.equal(await call('check'), '1');
+  await call('take');
+  assert.equal(await call('check'), '0');
   const keys = [...data.keys()];
   assert.ok(!keys.some((k) => k.includes('198.51')), 'no raw address stored');
   assert.ok(data.get('secret'), 'a random secret keys the pseudonyms');
   assert.ok(alarm > Date.now() + 47 * 3_600_000);
   await obj.alarm();
   assert.equal(data.size, 0);
+});
+
+await test('attempts that get no answer (e.g. allowance paused) never use up the daily cap', async () => {
+  const daily = fakeDaily();
+  let paused = true;
+  const { env } = makeEnv({
+    daily,
+    run: () => { if (paused) throw new Error('AiError: 4006: you have used up your daily free allocation of 10,000 neurons'); return sse([{ response: 'ok' }, '[DONE]']); },
+  });
+  for (let i = 0; i < 60; i++) {
+    const res = await worker.fetch(post(ask, undefined, '198.51.100.20'), env, ctx);
+    assert.deepEqual(await res.json(), { error: 'quota' });
+    await flush();
+  }
+  paused = false;
+  const res = await worker.fetch(post(ask, undefined, '198.51.100.20'), env, ctx);
+  assert.equal(res.status, 200);
+  assert.deepEqual(await events(res), [{ t: 'ok' }, { done: true }]);
 });
 
 await test('if the daily counter is down, the chat still works (fail open)', async () => {

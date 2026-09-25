@@ -166,8 +166,11 @@ lifted Greek quality from 5.6 to 7.8/10 in review. Both models are set in
 
 **Why it's free.** Workers AI through the Worker's `AI` binding, on a Cloudflare
 account on the **Workers Free** plan: 10,000 Neurons a day, roughly 200–300 answers.
-Past that, requests fail until 00:00 UTC (02:00/03:00 in Cyprus) and the widget shows
-Call / WhatsApp / Book instead. Nothing is billed because there is nothing to bill.
+Past that, requests fail (Workers AI error 4006) and the widget shows Call / WhatsApp /
+Book instead. Nothing is billed because there is nothing to bill. Cloudflare documents
+the reset as 00:00 UTC, but after the launch-day overrun (13,189 Neurons, allowed through
+before the cutoff caught up) the pause lasted well past midnight UTC, so the widget names
+no reset time.
 
 **Never:**
 - Upgrade that Cloudflare account to Workers Paid, or enable AI Gateway credits or
