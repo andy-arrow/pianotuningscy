@@ -1,9 +1,8 @@
-# Builds the site and publishes it to GitHub Pages on every push to main.
-#
-# This is the REVIEW deployment: served from /pianotuningscy/, marked noindex
-# sitewide and banner-flagged, so it can never be confused with or compete
-# against the real site at pianotuningscy.com.
-name: Deploy review site to GitHub Pages
+# The old REVIEW link (andy-arrow.github.io/pianotuningscy/) now forwards
+# every visitor to the live site, keeping the page they asked for, so nobody
+# who kept that link ever sees an outdated copy again. It used to publish a
+# noindex preview build of the site; the live site replaced it.
+name: Forward the old review link to the live site
 
 on:
   push:
@@ -23,23 +22,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Build (preview mode)
-        env:
-          TZ: Asia/Nicosia
-          PREVIEW_SITE: https://andy-arrow.github.io
-          PREVIEW_BASE: /pianotuningscy
-          PUBLIC_PREVIEW: 'true'
-        run: npx astro build
+      - name: Build the forwarding pages
+        run: |
+          mkdir -p forward
+          cat > forward/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+          <meta charset="utf-8">
+          <meta name="robots" content="noindex">
+          <title>Piano Tunings Cy — pianotuningscy.com</title>
+          <link rel="canonical" href="https://pianotuningscy.com/">
+          <script>
+            // /pianotuningscy/services/piano-tuning/ → https://pianotuningscy.com/services/piano-tuning/
+            var path = location.pathname.replace(/^\/pianotuningscy/, '') || '/';
+            location.replace('https://pianotuningscy.com' + path + location.search + location.hash);
+          </script>
+          <meta http-equiv="refresh" content="0; url=https://pianotuningscy.com/">
+          </head>
+          <body>
+          <p>Piano Tunings Cy is at <a href="https://pianotuningscy.com/">pianotuningscy.com</a>.</p>
+          </body>
+          </html>
+          HTML
+          # GitHub Pages serves 404.html for every other path, so deep links forward too.
+          cp forward/index.html forward/404.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./forward
 
   deploy:
     needs: build

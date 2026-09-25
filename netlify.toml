@@ -26,6 +26,18 @@
     Strict-Transport-Security = "max-age=300"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://plausible.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://plausible.io https://pianotuningscy-chat.aroditis-andreas.workers.dev; form-action 'self' https://plausible.io; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
 
+# The live build id and the cache-clearing beacon must never be cached.
+[[headers]]
+  for = "/version.json"
+  [headers.values]
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/refresh.txt"
+  [headers.values]
+    Cache-Control = "no-store"
+    Clear-Site-Data = '"cache"'
+
 # Fingerprinted build assets are immutable.
 [[headers]]
   for = "/_astro/*"
@@ -35,4 +47,4 @@
 [[headers]]
   for = "/og/*"
   [headers.values]
-    Cache-Control = "public, max-age=604800"
+    Cache-Control = "public, max-age=86400"

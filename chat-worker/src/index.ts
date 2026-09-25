@@ -385,7 +385,8 @@ async function parse(request: Request) {
 interface Knowledge { text: string; textEl: string; slugs: string[]; at: number }
 let cache: Knowledge | null = null;
 let refreshing: { p: Promise<Knowledge>; at: number } | null = null;
-const FRESH_MS = 5 * 60_000;
+// Picked up within about a minute of a site release.
+const FRESH_MS = 60_000;
 
 /**
  * Stale-while-revalidate: a slow website never slows a reply down. A load
@@ -418,7 +419,7 @@ async function getKnowledge(env: Env, ctx: ExecutionContext): Promise<Knowledge>
 async function loadKnowledge(env: Env): Promise<Knowledge> {
   const res = await fetch(env.KNOWLEDGE_URL, {
     headers: { Accept: 'application/json' },
-    cf: { cacheTtl: 120, cacheEverything: true },
+    cf: { cacheTtl: 30, cacheEverything: true },
     // Always settles, so one hung request can't block every later refresh.
     signal: AbortSignal.timeout(5_000),
   });

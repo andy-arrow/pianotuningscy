@@ -4,6 +4,7 @@ import Header from '~/components/Header.astro';
 import Footer from '~/components/Footer.astro';
 import StickyCallBar from '~/components/StickyCallBar.astro';
 import ChatWidget from '~/components/ChatWidget.astro';
+import { BUILD_ID } from '~/lib/buildId';
 import { site } from '~/data/site';
 import { bcp47, localeFromUrl, useTranslations, type Locale } from '~/i18n/ui';
 import { graph, localBusiness, person, website, webPage } from '~/lib/schema';
@@ -61,6 +62,7 @@ const jsonLd = graph([
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="site-version" content={BUILD_ID} />
 
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
@@ -199,6 +201,56 @@ const jsonLd = graph([
         setTimeout(revealAll, 4000);
       })();
     </script>
+    {/* Nobody stays on an old version. A page shown from memory — a tab left
+        open, one restored by the phone, a home-screen shortcut, the back
+        button — checks the live version when it comes back into view, and if
+        it's out of date clears this site's cached files and reloads. Never
+        while someone is typing in a form or using the chat; it tries again
+        next time. At most one reload per new version, so it can't loop. */}
+    <script is:inline>
+      (() => {
+        const mine = document.querySelector('meta[name="site-version"]')?.content;
+        if (!mine || !window.fetch) return;
+        let checking = false;
+        let last = 0;
+        const busy = () => {
+          if (document.querySelector('[data-chat-root][data-state="open"]')) return true;
+          for (const el of document.querySelectorAll('input, textarea, select')) {
+            if (['hidden', 'submit', 'button'].includes(el.type)) continue;
+            if (el.type === 'checkbox' || el.type === 'radio' ? el.checked !== el.defaultChecked : el.value !== el.defaultValue) return true;
+          }
+          return false;
+        };
+        const check = async (force) => {
+          if (checking || document.visibilityState !== 'visible') return;
+          if (!force && Date.now() - last < 60000) return;
+          checking = true;
+          last = Date.now();
+          try {
+            const res = await fetch('/version.json', { cache: 'no-store' });
+            const live = (await res.json()).version;
+            if (!live || live === mine || busy()) return;
+            try {
+              if (sessionStorage.getItem('site-version-reload') === live) return;
+              sessionStorage.setItem('site-version-reload', live);
+            } catch (e) {}
+            // Clear-Site-Data: "cache" on this response empties this site's cache.
+            try { await fetch('/refresh.txt', { cache: 'no-store' }); } catch (e) {}
+            location.reload();
+          } catch (e) {
+          } finally {
+            checking = false;
+          }
+        };
+        addEventListener('pageshow', (e) => { if (e.persisted) check(true); });
+        document.addEventListener('visibilitychange', () => check(false));
+        addEventListener('focus', () => check(false));
+        const nav = performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+        if (nav && (nav.type === 'back_forward' || nav.transferSize === 0)) check(true);
+        setInterval(() => check(false), 30 * 60 * 1000);
+      })();
+    </script>
+
     {/* Keeps the © year and years-in-business right in Cyprus time after
         New Year, even if the site hasn't been rebuilt since. */}
     <script is:inline>
