@@ -144,7 +144,7 @@ function buildKnowledge(locale: Locale): string {
     for (const a of serviceAreas) lines.push(`${a.en} = ${a.el}`);
     // Terms as the site's own Greek copy uses them.
     lines.push(
-      'pitch raise = ανύψωση τόνου; concert pitch = σωστό διαπασών; grand piano = πιάνο με ουρά; ' +
+      'pitch raise = ανύψωση τονικού ύψους; concert pitch = σωστό τονικό ύψος; grand piano = πιάνο με ουρά; ' +
         'upright = όρθιο πιάνο; soundboard = αρμονική; pinblock = καρφόξυλο; ' +
         'travel costs = έξοδα μετακίνησης; booking form = φόρμα κράτησης',
     );

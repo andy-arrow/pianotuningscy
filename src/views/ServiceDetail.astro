@@ -35,9 +35,10 @@ const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/images/
 const heroImage = images[`/src/assets/images/${service.image}`]?.default;
 
 const priceLabel =
-  service.price === null
+  copy.priceText ??
+  (service.price === null
     ? t('label.quoted')
-    : `${service.priceFrom ? t('label.from') + ' ' : ''}€${service.price}`;
+    : `${service.priceFrom ? t('label.from') + ' ' : ''}€${service.price}`);
 
 /**
  * 90 → "1 hr 30 min", 480 → "8 hr", 30 → "30 min".
@@ -52,7 +53,7 @@ function formatDuration(mins: number | null): string {
   if (m) parts.push(`${m} ${t(m === 1 ? 'label.unitMinOne' : 'label.unitMin')}`);
   return parts.join(' ');
 }
-const durationLabel = formatDuration(service.duration);
+const durationLabel = copy.durationText ?? formatDuration(service.duration);
 ---
 
 <Base
@@ -94,7 +95,10 @@ const durationLabel = formatDuration(service.duration);
               <dt class="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-ebony-500">
                 {t('label.price')}
               </dt>
-              <dd class="mt-1.5 font-display text-[1.75rem] leading-none text-ebony-950">
+              <dd class:list={[
+                'mt-1.5 text-ebony-950',
+                copy.priceText ? 'text-[1rem] leading-snug' : 'font-display text-[1.75rem] leading-none',
+              ]}>
                 {priceLabel}
               </dd>
             </div>
@@ -102,8 +106,11 @@ const durationLabel = formatDuration(service.duration);
               <dt class="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-ebony-500">
                 {t('label.duration')}
               </dt>
-              <dd class="mt-1.5 flex items-center gap-2 font-display text-[1.75rem] leading-none text-ebony-950">
-                <Icon name="clock" class="h-5 w-5 text-gold-600" />
+              <dd class:list={[
+                'mt-1.5 flex gap-2 text-ebony-950',
+                copy.durationText ? 'items-start text-[1rem] leading-snug' : 'items-center font-display text-[1.75rem] leading-none',
+              ]}>
+                <Icon name="clock" class:list={['h-5 w-5 shrink-0 text-gold-600', copy.durationText && 'mt-0.5']} />
                 {durationLabel}
               </dd>
             </div>
@@ -167,9 +174,9 @@ const durationLabel = formatDuration(service.duration);
       <section class="bg-ebony-50 py-20 lg:py-24">
         <div class="container-x">
           <div class="max-w-3xl">
-            <p class="eyebrow">{t('home.faqEyebrow')}</p>
+            {!copy.faqTitle && <p class="eyebrow">{t('home.faqEyebrow')}</p>}
             <h2 class="mt-4 text-[2rem] leading-[1.14] text-ebony-950 sm:text-[2.4rem]">
-              {copy.name} — {t('faq.title').toLowerCase()}
+              {copy.faqTitle ?? `${copy.name} — ${t('faq.title').toLowerCase()}`}
             </h2>
             <div class="rule-gold mt-7 mb-12" />
             <FaqAccordion items={serviceFaqs} locale={locale} />
