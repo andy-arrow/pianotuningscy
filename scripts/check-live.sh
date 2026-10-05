@@ -176,5 +176,23 @@ print(out)' 2>/dev/null)
                  *) bad "AI answers" "HTTP $code ${txt:0:160}";; esac
 fi
 
+hdr "13. Search hygiene (what Google is shown)"
+R=$(curl -s --max-time 25 "$CANON/robots.txt")
+echo "$R" | grep -qi "^Disallow" && bad "robots.txt" "has Disallow lines (blocks a noindex)" || ok "robots.txt" "no Disallow lines"
+S=$(curl -s --max-time 25 "$CANON/sitemap-0.xml")
+echo "$S" | grep -qE "thanks|efcharistoume|404" && bad "sitemap" "lists a noindex page" || ok "sitemap" "$(echo "$S" | grep -o '<loc>' | wc -l | tr -d ' ') pages, none noindex"
+c=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 "$CANON/sitemap.xml")
+[ "$c" = "301" ] && ok "/sitemap.xml (old Wix name)" "301" || bad "/sitemap.xml (old Wix name)" "$c"
+r=$(curl -s -w '\n%{http_code}' --max-time 25 "$CANON/el/den-yparchei/")
+case "$r" in *"Η σελίδα δεν βρέθηκε"*404) ok "/el/ missing page" "404 in Greek";; *) bad "/el/ missing page" "${r##*$'\n'}, not the Greek 404";; esac
+r=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 25 "$CANON/el/ypiresies")
+[ "$r" = "301 $CANON/el/ypiresies/" ] && ok "/el/ypiresies (no slash)" "301 → slash" || bad "/el/ypiresies (no slash)" "$r"
+r=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 25 "https://cosmic-melba-611406.netlify.app/faq/")
+[ "$r" = "301 $CANON/faq/" ] && ok "netlify.app duplicate" "301 → real domain" || bad "netlify.app duplicate" "$r"
+PAGE=$(curl -s --max-time 25 "$CANON/")
+echo "$PAGE" | grep -qE '<h[1-6][^>]*id="ptc-chat-title"' && bad "chat panel title" "is a heading" || ok "chat panel title" "not a heading"
+echo "$PAGE" | grep -q '"FAQPage"' && bad "home FAQ markup" "repeated (belongs on /faq/ only)" || ok "home FAQ markup" "absent (kept on /faq/ only)"
+curl -s --max-time 25 "$CANON/faq/" | grep -q '"FAQPage"' && ok "/faq/ FAQ markup" "present" || bad "/faq/ FAQ markup" "missing"
+
 printf "\n\033[1m%d passed, %d failed\033[0m\n" "$pass" "$fail"
 exit $([ "$fail" -eq 0 ] && echo 0 || echo 1)

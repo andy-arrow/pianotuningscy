@@ -1,0 +1,34 @@
+---
+/**
+ * Links to the reviews on Google and Facebook, so visitors can check the
+ * testimonials against the public profiles. Counts are deliberately not
+ * shown: they would go stale.
+ */
+import { site } from '~/data/site';
+import { useTranslations, type Locale } from '~/i18n/ui';
+
+interface Props { locale: Locale; class?: string }
+const { locale, class: className } = Astro.props;
+const t = useTranslations(locale);
+const links = [
+  ['Google', site.social.googleMaps, 'reviews-google'],
+  ['Facebook', site.social.facebookReviews, 'reviews-facebook'],
+] as const;
+---
+
+<p class:list={['text-[0.95rem] text-ebony-600', className]}>
+  {t('reviews.more')}{' '}
+  {links.map(([label, href, key], i) => (
+    <>
+      {i > 0 && <span aria-hidden="true"> · </span>}
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-analytics={key}
+        aria-label={`${t('reviews.more')} ${label} (${t('a11y.newTab')})`}
+        class="font-medium text-gold-700 underline decoration-gold-300 underline-offset-4 transition-colors hover:text-gold-800 hover:decoration-gold-600"
+      >{label}</a>
+    </>
+  ))}
+</p>

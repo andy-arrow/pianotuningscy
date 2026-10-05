@@ -1,6 +1,5 @@
 import { site, serviceAreas } from '~/data/site';
 import { services, type Service } from '~/data/services';
-import { testimonials } from '~/data/testimonials';
 import { faqs, type Faq } from '~/data/faq';
 import { bcp47, path, servicePath, type Locale } from '~/i18n/ui';
 
@@ -54,7 +53,8 @@ export function localBusiness(locale: Locale) {
     })),
     founder: { '@id': PERSON_ID },
     employee: { '@id': PERSON_ID },
-    sameAs: [site.social.facebook, site.social.instagram, site.social.tiktok],
+    hasMap: site.social.googleMaps,
+    sameAs: [site.social.facebook, site.social.instagram, site.social.tiktok, site.social.googleMaps],
     knowsLanguage: ['en', 'el'],
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
@@ -149,19 +149,11 @@ export function serviceSchema(s: Service, locale: Locale) {
 }
 
 /**
- * Reviews. Deliberately emitted WITHOUT aggregateRating: the testimonials carried over
- * from the old site have no star ratings attached, and inventing them would be both
- * dishonest and a Google structured-data violation.
+ * Used on /faq/ only. Google asks for a repeated question to be marked up once
+ * per site, and since 2023 it shows FAQ rich results only for government and
+ * health sites. The other pages still show their FAQ accordions; they just
+ * don't repeat the markup.
  */
-export function reviewSchema(locale: Locale) {
-  return testimonials.map((r) => ({
-    '@type': 'Review',
-    itemReviewed: { '@id': ORG_ID },
-    author: { '@type': 'Person', name: r.author },
-    reviewBody: r.quote[locale],
-  }));
-}
-
 export function faqSchema(items: Faq[], locale: Locale) {
   return {
     '@type': 'FAQPage',

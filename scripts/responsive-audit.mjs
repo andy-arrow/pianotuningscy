@@ -21,7 +21,7 @@ const DIST = process.env.AUDIT_DIST || 'dist';
 const URL_PREFIX = process.env.AUDIT_PREFIX || '';
 
 /** Widths from the smallest phone still in use to an ultrawide desktop. */
-const VIEWPORTS = [
+const ALL_VIEWPORTS = [
   { w: 280,  h: 653,  name: '280  Galaxy Fold (cover)' },
   { w: 320,  h: 568,  name: '320  iPhone SE (1st gen)' },
   { w: 360,  h: 740,  name: '360  Android common' },
@@ -39,6 +39,9 @@ const VIEWPORTS = [
   { w: 2560, h: 1440, name: '2560 2K' },
   { w: 3440, h: 1440, name: '3440 ultrawide' },
 ];
+// AUDIT_WIDTHS=375,1440 checks only those widths (a full run takes ~40 min).
+const ONLY = process.env.AUDIT_WIDTHS?.split(',').map(Number);
+const VIEWPORTS = ONLY ? ALL_VIEWPORTS.filter((v) => ONLY.includes(v.w)) : ALL_VIEWPORTS;
 
 /** Every built page → its URL path. */
 function pages(dir = DIST, out = []) {

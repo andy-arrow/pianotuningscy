@@ -104,6 +104,10 @@ const hours = openingHoursRows(locale);
           {t('footer.contactTitle')}
         </h2>
         <ul class="mt-5 space-y-4 text-[0.95rem]">
+          <li class="text-ebony-300">
+            <span class="font-medium text-white">{locale === 'el' ? site.technician.nameEl : site.technician.name}</span><br />
+            <span class="text-ebony-500">{site.technician.jobTitle[locale]}</span>
+          </li>
           <li>
             <a href={`tel:${site.phone}`} data-analytics="footer-call" class="group flex items-start gap-3 text-ebony-300 transition-colors hover:text-white">
               <Icon name="phone" class="mt-0.5 h-[18px] w-[18px] shrink-0 text-gold-500" />

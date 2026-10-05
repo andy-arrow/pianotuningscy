@@ -70,7 +70,7 @@ export const faqs: Faq[] = [
     id: 'old-piano-worth',
     topics: ['general', 'piano-evaluation', 'piano-restoration'],
     q: {
-      en: 'My piano has not been tuned in 20 years. Is it worth saving?',
+      en: 'Can a piano be tuned after 20 years? Is it worth saving?',
       el: 'Το πιάνο μου έχει 20 χρόνια να κουρδιστεί. Αξίζει να σωθεί;',
     },
     a: {

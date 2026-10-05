@@ -49,6 +49,9 @@ export const site = {
     facebook: 'https://www.facebook.com/pianotuningscy',
     instagram: 'https://www.instagram.com/piano_tunings_cy/',
     tiktok: 'https://www.tiktok.com/@pianotuningscy',
+    /** The Google Business Profile (Maps listing), confirmed Oct 2026: 'Piano Tunings Cy', +357 99 405612. */
+    googleMaps: 'https://www.google.com/maps?cid=16561304365086432635',
+    facebookReviews: 'https://www.facebook.com/pianotuningscy/reviews',
   },
 
   /** Analytics: set to a real ID to enable. Empty string = no tracking loaded at all. */

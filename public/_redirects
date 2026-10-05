@@ -5,6 +5,10 @@
 # Format: Netlify (_redirects). Cloudflare Pages reads this file too.
 # For Vercel, the same map is mirrored in vercel.json.
 
+# The Netlify address serves the same site; send it to the real domain so
+# search engines never see a duplicate. (Deploy previews use other hostnames.)
+https://cosmic-melba-611406.netlify.app/*  https://pianotuningscy.com/:splat  301!
+
 # --- English pages ---
 /blank-1                  /services/                           301
 /blank-2                  /about/                              301
@@ -63,3 +67,8 @@
 /pricing-plans-sitemap.xml      /sitemap-index.xml             301
 /el_el-sitemap.xml              /sitemap-index.xml             301
 /el_el-pages-sitemap.xml        /sitemap-index.xml             301
+/sitemap.xml                    /sitemap-index.xml             301
+
+# --- Greek "page not found" ---
+# Must stay last. Not forced, so it only applies when no page exists.
+/el/*   /el/404/index.html   404

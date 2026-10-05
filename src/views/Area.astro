@@ -11,7 +11,7 @@ import { featuredServices } from '~/data/services';
 import { areaContent } from '~/data/areaContent';
 import { faqsFor } from '~/data/faq';
 import { alternateUrls, path, areaPath, useTranslations, type Locale } from '~/i18n/ui';
-import { breadcrumbs, faqSchema } from '~/lib/schema';
+import { breadcrumbs } from '~/lib/schema';
 
 type Area = (typeof serviceAreas)[number];
 interface Props { area: Area; locale: Locale }
@@ -32,8 +32,17 @@ const trail = [
 const meta =
   locale === 'en'
     ? {
-        title: `Piano Tuning in ${city}, Cyprus — Piano Tunings Cy`,
-        description: `Piano tuning, repairs, restoration and moving in ${city}. Tunings from €100 by Kleanthis Christoforou, piano technician in Cyprus since 2011. Call +357 99 405612.`,
+        // Famagusta-district searches name the resort towns, so that page says them.
+        ...(area.slug === 'famagusta'
+          ? {
+              title: 'Piano Tuning in Famagusta & Ayia Napa — Piano Tunings Cy',
+              description:
+                'Piano tuner for Ayia Napa, Protaras, Paralimni and the Famagusta district: tuning from €100, repairs and event pianos. Call +357 99 405612.',
+            }
+          : {
+              title: `Piano Tuning in ${city}, Cyprus — Piano Tunings Cy`,
+              description: `Piano tuner in ${city}: tuning from €100, repairs, restoration and moving by Kleanthis Christoforou since 2011. Call +357 99 405612.`,
+            }),
         h1: `Piano tuning in ${city}`,
       }
     : {
@@ -68,7 +77,7 @@ const others = serviceAreas.filter((a) => a.slug !== area.slug);
   title={meta.title}
   description={meta.description}
   alternates={alternates}
-  schema={[breadcrumbs(trail), areaSchema, faqSchema(areaFaqs, locale)]}
+  schema={[breadcrumbs(trail), areaSchema]}
 >
   <PageHeader
     eyebrow={t('label.serviceArea')}

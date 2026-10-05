@@ -26,7 +26,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
     title: { en: 'Privacy policy', el: 'Πολιτική απορρήτου' },
     description: {
       en: 'How Piano Tunings Cy collects, uses, stores and protects your personal data under the GDPR — what we hold, why, for how long, and your rights.',
-      el: 'Πώς το Piano Tunings Cy συλλέγει, χρησιμοποιεί, αποθηκεύει και προστατεύει τα προσωπικά σας δεδομένα βάσει του GDPR — τι τηρούμε, γιατί, για πόσο, και τα δικαιώματά σας.',
+      el: 'Πώς το Piano Tunings Cy συλλέγει, χρησιμοποιεί και προστατεύει τα προσωπικά σας δεδομένα βάσει του GDPR — τι τηρούμε, για πόσο, και τα δικαιώματά σας.',
     },
     sections: {
       en: [

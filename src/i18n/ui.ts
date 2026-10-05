@@ -83,7 +83,7 @@ export const ui = {
     'home.areasEyebrow': 'Where we work',
     'home.areasTitle': 'Across the whole island',
     'home.areasLead':
-      'Based in Limassol, working weekly in every district of the island. Travel is normally included in the price.',
+      'Based in Limassol, with regular visits to Nicosia, Larnaca, Paphos and the Famagusta district. Travel is normally included in the price.',
     'home.ctaTitle': 'Ready when your piano is',
     'home.ctaLead':
       'Tell us what your piano needs — or simply that it has not been tuned in a while — and you will get a straight answer and a firm price.',
@@ -100,6 +100,7 @@ export const ui = {
       'Comments from clients who have trusted us with their instruments — concert professionals, teachers and families.',
     'reviews.note':
       'These reviews were given directly to Piano Tunings Cy and are reproduced as written.',
+    'reviews.more': 'More reviews on',
     'faq.title': 'Frequently asked questions',
     'faq.lead':
       'Straight answers about tuning, moving, restoring and looking after a piano in the Cypriot climate.',
@@ -278,7 +279,7 @@ export const ui = {
     'home.areasEyebrow': 'Πού εργαζόμαστε',
     'home.areasTitle': 'Σε ολόκληρο το νησί',
     'home.areasLead':
-      'Με έδρα τη Λεμεσό και εβδομαδιαία παρουσία σε κάθε επαρχία του νησιού. Η μετάβαση κανονικά περιλαμβάνεται στην τιμή.',
+      'Με έδρα τη Λεμεσό και τακτική παρουσία στη Λευκωσία, τη Λάρνακα, την Πάφο και την επαρχία Αμμοχώστου. Το κόστος μετακίνησης συνήθως περιλαμβάνεται στην τιμή.',
     'home.ctaTitle': 'Είμαι εδώ όταν το πιάνο σας χρειάζεται φροντίδα',
     'home.ctaLead':
       'Πείτε μου τι χρειάζεται το πιάνο σας ή απλώς ενημερώστε με ότι έχει περάσει αρκετός καιρός από το τελευταίο του κούρδισμα. Θα λάβετε ξεκάθαρες απαντήσεις και αναλυτική ενημέρωση για το κόστος πριν ξεκινήσει οποιαδήποτε εργασία.',
@@ -294,7 +295,8 @@ export const ui = {
     'reviews.lead':
       'Σχόλια από επαγγελματίες μουσικούς, καθηγητές και οικογένειες που με εμπιστεύτηκαν για τη φροντίδα των πιάνων τους.',
     'reviews.note':
-      'Οι κριτικές δόθηκαν απευθείας στο Piano Tunings Cy και αναπαράγονται όπως γράφτηκαν.',
+      'Οι κριτικές δόθηκαν απευθείας στο Piano Tunings Cy στα αγγλικά· εδώ παρουσιάζονται σε ελληνική μετάφραση.',
+    'reviews.more': 'Περισσότερες κριτικές στο',
     'faq.title': 'Συχνές ερωτήσεις',
     'faq.lead':
       'Ξεκάθαρες απαντήσεις για το κούρδισμα, τη μεταφορά, την ανακαίνιση και τη φροντίδα ενός πιάνου στο κυπριακό κλίμα.',

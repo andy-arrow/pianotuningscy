@@ -13,12 +13,10 @@ User-agent: *
 Disallow: /
 `;
 
+// The thank-you pages are not disallowed: they carry noindex, and a crawler
+// can only obey a noindex on a page it is allowed to fetch.
 const production = `User-agent: *
 Allow: /
-
-# System pages carry noindex; keep them out of crawl budget too.
-Disallow: /thanks/
-Disallow: /el/efcharistoume/
 
 Sitemap: ${SITE}/sitemap-index.xml
 `;

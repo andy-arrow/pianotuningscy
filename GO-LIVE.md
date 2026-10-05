@@ -4,6 +4,8 @@
 **Date written:** 23 September 2026. Values marked **verify on the day** can change — check them at the source before typing.
 **The one thing that must not break:** business email on `info@pianotuningscy.com`. It is carried by the MX records. You will not touch them at any point in this runbook.
 
+> **Status, October 2026: the cutover is done (24 September 2026).** The site's permanent address is the bare domain, **`https://pianotuningscy.com`**. Canonicals, the sitemap, hreflang and the structured data all use it, and `www` redirects to it. **Never change Netlify's primary domain back to `www`.** That would move every page to a new address within weeks of the last move (search engines restart trust on a moved URL). Wherever the steps below say `https://www.pianotuningscy.com`, the live answer is now `https://pianotuningscy.com`. `robots.txt` no longer has any `Disallow` lines: the thank-you pages carry `noindex`, and a crawler can only obey that on a page it is allowed to fetch.
+
 ---
 
 ## 0. The shape of the whole job, in one paragraph
@@ -147,7 +149,7 @@ Your domain is registered at one.com, not Wix, so ending the Wix plan cannot aff
    ```
    curl -s https://YOURSITE.netlify.app/robots.txt
    ```
-   Must show `User-agent: *` / `Allow: /`, then `Disallow: /thanks/` and `Disallow: /el/efcharistoume/` (both expected and correct), then `Sitemap: https://www.pianotuningscy.com/sitemap-index.xml`. **If it says `Disallow: /`, stop — preview mode has leaked. Fix it before going further.**
+   Must show `User-agent: *` / `Allow: /`, then `Sitemap: https://pianotuningscy.com/sitemap-index.xml`, and no `Disallow` lines. **If it says `Disallow: /`, stop — preview mode has leaked. Fix it before going further.**
 
    ```
    curl -s https://YOURSITE.netlify.app/sitemap-index.xml | head -5
@@ -169,7 +171,7 @@ Your domain is registered at one.com, not Wix, so ending the Wix plan cannot aff
 7. **Submit the contact form for real**, from the `.netlify.app` URL, in both English and Greek. Use a real email address, write a full sentence in the message box, and space the two submissions apart — Akismet filtering is always on and cannot be disabled, and terse test submissions from one IP are exactly what it eats.
    *Stop when:* both appear under Forms → your form → **Verified submissions**, and the notification email actually arrives at `info@pianotuningscy.com`. If a submission is missing, check the **Spam submissions** list before concluding anything is broken.
 
-8. **Add the domains in Netlify — still no DNS change.** Domain management → Add a domain → `www.pianotuningscy.com`. Netlify adds the apex `pianotuningscy.com` automatically. **Set `www.pianotuningscy.com` as the primary domain** — Netlify strongly recommends this when DNS stays with an external provider (an apex on third-party DNS can't use their direct CDN routing), and it matches the site's own canonicals, which are hard-coded to `https://www.pianotuningscy.com` in `astro.config.mjs`. Netlify will redirect the apex to www automatically.
+8. **Add the domains in Netlify — still no DNS change.** Domain management → Add a domain → `www.pianotuningscy.com`. Netlify adds the apex `pianotuningscy.com` automatically. **The primary domain is the apex, `pianotuningscy.com`** (changed from the original www plan; see the status note at the top). It matches the site's own canonicals, set in `astro.config.mjs` as `SITE = 'https://pianotuningscy.com'`. Netlify redirects www to the apex automatically. Do not change it.
    *Stop when:* both domains are listed as "Awaiting External DNS" / "Pending DNS verification".
 
 9. **Read the exact values off the "Pending DNS verification" modal.** Click it next to `pianotuningscy.com`. Write down the A-record IP it shows and the `.netlify.app` hostname it shows. **These are authoritative for your site and override anything written below** — sites on Netlify's High-Performance Edge get a different load balancer and a different target.

@@ -34,10 +34,11 @@ const years = cyprusYear() - site.foundingYear;
 
   <div class="container-x w-full pb-16 pt-32 lg:pb-24 lg:pt-40">
     <div class="max-w-2xl">
-      <p class="eyebrow !text-gold-400">{t('home.heroEyebrow')}</p>
-
-      <h1 class="mt-5 text-[2.75rem] leading-[1.04] text-white sm:text-[3.5rem] lg:text-[4.25rem]">
-        {t('home.heroTitle')}
+      <!-- One H1 holds both lines, so the page's main heading says what the
+           business does ("Piano tuning, repair & removals"), not only the slogan. -->
+      <h1 class="text-white">
+        <span class="eyebrow block font-sans !text-gold-400">{t('home.heroEyebrow')}</span>
+        <span class="mt-5 block text-[2.75rem] leading-[1.04] tracking-[-0.015em] sm:text-[3.5rem] lg:text-[4.25rem]">{t('home.heroTitle')}</span>
       </h1>
 
       <p class="mt-6 max-w-xl text-[1.1rem] leading-[1.7] text-ebony-200 lg:text-[1.2rem]">

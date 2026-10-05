@@ -11,7 +11,7 @@ import { site } from '~/data/site';
 import { services, type Service } from '~/data/services';
 import { faqsFor } from '~/data/faq';
 import { alternateUrls, path, servicePath, useTranslations, type Locale } from '~/i18n/ui';
-import { breadcrumbs, serviceSchema, faqSchema } from '~/lib/schema';
+import { breadcrumbs, serviceSchema } from '~/lib/schema';
 
 interface Props { service: Service; locale: Locale }
 const { service, locale } = Astro.props;
@@ -58,13 +58,12 @@ const durationLabel = copy.durationText ?? formatDuration(service.duration);
 
 <Base
   locale={locale}
-  title={`${copy.name} | Piano Tunings Cy`}
+  title={`${(copy.metaTitle ?? copy.name).replace('{price}', String(service.price))} | Piano Tunings Cy`}
   description={copy.metaDescription}
   alternates={alternates}
   schema={[
     breadcrumbs(trail),
     serviceSchema(service, locale),
-    ...(serviceFaqs.length ? [faqSchema(serviceFaqs, locale)] : []),
   ]}
 >
   <div class="bg-white">
@@ -139,7 +138,7 @@ const durationLabel = copy.durationText ?? formatDuration(service.duration);
             heroImage && (
               <Image
                 src={heroImage}
-                alt={copy.name}
+                alt={copy.imageAlt ?? copy.name}
                 width={900}
                 height={700}
                 widths={[450, 900]}

@@ -29,9 +29,17 @@ export interface Service {
 
 export interface ServiceCopy {
   name: string;
+  /**
+   * <title> text before " | Piano Tunings Cy", worded the way people search
+   * (checked against Google suggestions in Cyprus, Oct 2026). "{price}" is
+   * replaced with the service price. Falls back to the name.
+   */
+  metaTitle?: string;
   tagline: string;
-  /** 155–165 chars, used as the meta description. */
+  /** At most 155 chars, used as the meta description. */
   metaDescription: string;
+  /** Describes the service page photo itself; falls back to the name. */
+  imageAlt?: string;
   /** Short card text. */
   summary: string;
   /** Long-form body paragraphs. */
@@ -58,9 +66,11 @@ export const services: Service[] = [
     image: 'kleanthis-tuning-concert-grand.jpg',
     en: {
       name: 'Piano Tuning',
+      metaTitle: 'Piano Tuning in Cyprus, from €{price}',
+      imageAlt: 'Kleanthis Christoforou tuning a concert grand piano',
       tagline: 'Concert-standard tuning, anywhere in Cyprus',
       metaDescription:
-        'Professional piano tuning in Cyprus from €100. Concert-standard tuning for uprights and grands by Kleanthis Christoforou, technician since 2011.',
+        'How much is piano tuning in Cyprus? From €100 for a full tuning of an upright or grand, about 90 minutes, by Kleanthis Christoforou, since 2011.',
       summary:
         'A full tuning to concert pitch, with a fine regulation check of touch and tone while the instrument is open.',
       body: [
@@ -81,9 +91,11 @@ export const services: Service[] = [
     },
     el: {
       name: 'Κούρδισμα Πιάνου',
+      metaTitle: 'Κούρδισμα Πιάνου Κύπρος: Τιμή από €{price}',
+      imageAlt: 'Ο Κλεάνθης Χριστοφόρου κουρδίζει πιάνο με ουρά',
       tagline: 'Κούρδισμα συναυλιακού επιπέδου σε ολόκληρη την Κύπρο',
       metaDescription:
-        'Επαγγελματικό κούρδισμα πιάνου στην Κύπρο από €100. Κούρδισμα επιπέδου συναυλίας για όρθια πιάνα και πιάνα με ουρά από τον Κλεάνθη Χριστοφόρου.',
+        'Κούρδισμα (χόρδισμα) πιάνου σε όλη την Κύπρο από €100: πλήρες κούρδισμα όρθιου ή πιάνου με ουρά, περίπου 90 λεπτά. Κλεάνθης Χριστοφόρου, από το 2011.',
       summary:
         'Πλήρες κούρδισμα στο σωστό τονικό ύψος, με έλεγχο του μηχανισμού και του ήχου όσο το όργανο είναι ανοιχτό.',
       body: [
@@ -116,6 +128,8 @@ export const services: Service[] = [
     image: 'piano-action-restoration.jpg',
     en: {
       name: 'Piano Repairs & Regulation',
+      metaTitle: 'Piano Repair & Regulation in Cyprus',
+      imageAlt: 'Close-up of an upright piano action opened for repair',
       tagline: 'Making the action do what your fingers ask',
       metaDescription:
         `Piano repairs and action regulation across Cyprus. Sticking keys, broken hammers, worn dampers and uneven touch put right by a technician of ${YEARS} years.`,
@@ -139,6 +153,8 @@ export const services: Service[] = [
     },
     el: {
       name: 'Επισκευές και Ρύθμιση Μηχανισμού',
+      metaTitle: 'Επισκευή & Ρύθμιση Πιάνου στην Κύπρο',
+      imageAlt: 'Κοντινή λήψη του μηχανισμού όρθιου πιάνου κατά την επισκευή',
       tagline: 'Για να ανταποκρίνεται το πιάνο με ακρίβεια στο άγγιγμά σας',
       metaDescription:
         'Επισκευές πιάνου και ρύθμιση μηχανισμού σε όλη την Κύπρο. Πλήκτρα που κολλούν, σπασμένα σφυράκια, φθαρμένοι πνιγείς και ανομοιόμορφο βάρος αφής.',
@@ -173,6 +189,8 @@ export const services: Service[] = [
     image: 'steinway-concert-stage.jpg',
     en: {
       name: 'Piano Restoration',
+      metaTitle: 'Piano Restoration in Cyprus',
+      imageAlt: 'Steinway & Sons concert grand on an orchestra stage',
       tagline: 'Bringing an instrument all the way back',
       metaDescription:
         'Full piano restoration in Cyprus: restringing, action rebuilds, soundboard work, colour changes and cabinet refinishing on uprights and grands.',
@@ -195,6 +213,8 @@ export const services: Service[] = [
     },
     el: {
       name: 'Ανακαίνιση Πιάνου',
+      metaTitle: 'Ανακαίνιση & Ανακατασκευή Πιάνου, Κύπρος',
+      imageAlt: 'Πιάνο με ουρά Steinway & Sons σε σκηνή ορχήστρας',
       tagline: 'Η πλήρης επαναφορά ενός οργάνου',
       metaDescription:
         'Πλήρης ανακαίνιση πιάνου στην Κύπρο: αλλαγή χορδών, ανακατασκευή μηχανισμού, εργασίες αρμονικής, αλλαγή χρώματος και βερνίκωμα επίπλου.',
@@ -228,9 +248,11 @@ export const services: Service[] = [
     image: 'piano-removal-seaside.jpg',
     en: {
       name: 'Piano Moving & Removals',
+      metaTitle: 'Piano Moving & Removals in Cyprus',
+      imageAlt: 'Upright piano wrapped in padded covers on a piano lift, by the sea',
       tagline: 'Specialist equipment, insured, anywhere on the island',
       metaDescription:
-        'Specialist piano moving across Cyprus. Uprights, grands and concert instruments moved with proper equipment — stairs, balconies and tight access handled.',
+        'Specialist piano movers across Cyprus: uprights, grands and concert instruments, stairs and balconies handled. Send photos of the access for a firm price.',
       summary:
         'Uprights, grands and concert instruments moved with proper equipment — including stairs, balconies and impossible access.',
       body: [
@@ -250,9 +272,11 @@ export const services: Service[] = [
     },
     el: {
       name: 'Μεταφορά Πιάνου',
+      metaTitle: 'Μεταφορά Πιάνου σε όλη την Κύπρο',
+      imageAlt: 'Όρθιο πιάνο τυλιγμένο σε προστατευτικά καλύμματα πάνω σε ανυψωτικό μεταφοράς, δίπλα στη θάλασσα',
       tagline: 'Ειδικός εξοπλισμός, ασφαλισμένη μεταφορά, σε όλο το νησί',
       metaDescription:
-        'Εξειδικευμένη μεταφορά πιάνου σε όλη την Κύπρο. Όρθια πιάνα, πιάνα με ουρά και όργανα συναυλιών με κατάλληλο εξοπλισμό — σκάλες, μπαλκόνια, δύσκολη πρόσβαση.',
+        'Μεταφορά πιάνου σε όλη την Κύπρο: όρθια, με ουρά και συναυλιακά, με σκάλες, μπαλκόνια και δύσκολη πρόσβαση. Στείλτε φωτογραφίες για σταθερή τιμή.',
       summary:
         'Όρθια πιάνα, πιάνα με ουρά και όργανα συναυλιών με κατάλληλο εξοπλισμό — σκάλες, μπαλκόνια και αδύνατες προσβάσεις.',
       body: [
@@ -284,6 +308,8 @@ export const services: Service[] = [
     image: 'grand-piano-seaside.jpg',
     en: {
       name: 'Grand Piano Rental',
+      metaTitle: 'Grand Piano Rental & Hire in Cyprus',
+      imageAlt: 'Black grand piano set up on a seaside terrace for an outdoor event',
       tagline: 'Concert instruments for weddings, concerts and events',
       metaDescription:
         'Grand piano rental in Cyprus from €650. Kawai, Ritmüller and Steinway & Sons instruments delivered, tuned and staged for weddings, concerts and events.',
@@ -306,6 +332,8 @@ export const services: Service[] = [
     },
     el: {
       name: 'Ενοικίαση Πιάνου με Ουρά',
+      metaTitle: 'Ενοικίαση Πιάνου με Ουρά στην Κύπρο',
+      imageAlt: 'Μαύρο πιάνο με ουρά στημένο σε παραθαλάσσια βεράντα για υπαίθρια εκδήλωση',
       tagline: 'Όργανα συναυλίας για γάμους, συναυλίες και εκδηλώσεις',
       metaDescription:
         'Ενοικίαση πιάνου με ουρά στην Κύπρο από €650. Όργανα Kawai, Ritmüller και Steinway & Sons με παράδοση, κούρδισμα και τοποθέτηση για κάθε εκδήλωση.',
@@ -339,9 +367,11 @@ export const services: Service[] = [
     image: 'grand-piano-modern-home.jpg',
     en: {
       name: 'Piano Evaluation',
+      metaTitle: 'Piano Valuation & Inspection in Cyprus',
+      imageAlt: 'Black baby grand piano in a bright room with floor-to-ceiling windows',
       tagline: 'An independent opinion before you buy, sell or insure',
       metaDescription:
-        `Independent piano evaluation in Cyprus, €30. Written condition and value assessment for buying, selling, insurance or probate — from a technician of ${YEARS} years.`,
+        'What is your piano worth? Independent valuation and pre-purchase inspection in Cyprus from €30, with a written report for buyers, sellers and insurers.',
       summary:
         'An independent condition and value assessment for buying, selling, insurance or inheritance.',
       body: [
@@ -361,9 +391,11 @@ export const services: Service[] = [
     },
     el: {
       name: 'Εκτίμηση Πιάνου',
+      metaTitle: 'Εκτίμηση Αξίας Πιάνου στην Κύπρο, από €{price}',
+      imageAlt: 'Μαύρο πιάνο με ουρά σε φωτεινό χώρο με τζαμαρίες',
       tagline: 'Ανεξάρτητη γνώμη πριν αγοράσετε, πουλήσετε ή ασφαλίσετε',
       metaDescription:
-        'Ανεξάρτητη εκτίμηση πιάνου στην Κύπρο, €30. Γραπτή αξιολόγηση κατάστασης και αξίας για αγορά, πώληση, ασφάλιση ή κληρονομιά.',
+        'Εκτίμηση αξίας και έλεγχος πιάνου πριν την αγορά, σε όλη την Κύπρο, από €30. Γραπτή αναφορά κατάστασης και αξίας για αγορά, πώληση, ασφάλιση ή κληρονομιά.',
       summary:
         'Ανεξάρτητη αξιολόγηση κατάστασης και αξίας για αγορά, πώληση, ασφάλιση ή κληρονομιά.',
       body: [
@@ -394,6 +426,8 @@ export const services: Service[] = [
     image: 'grand-piano-landscape.jpg',
     en: {
       name: 'The Piano Guardian',
+      metaTitle: 'Piano Guardian: Humidity Monitoring Plan',
+      imageAlt: 'Grand piano standing outdoors beside concrete domes under a cloudy sky',
       tagline: 'Year-round protection against the Cypriot climate',
       metaDescription:
         'The Piano Guardian: €230/year. Humidity and temperature monitoring for your piano in Cyprus, plus one full tuning included every year.',
@@ -416,6 +450,8 @@ export const services: Service[] = [
     },
     el: {
       name: 'The Piano Guardian',
+      metaTitle: 'Piano Guardian: Έλεγχος Υγρασίας Πιάνου',
+      imageAlt: 'Πιάνο με ουρά σε υπαίθριο χώρο δίπλα σε τσιμεντένιους θόλους',
       tagline: 'Προστασία όλο τον χρόνο από το κυπριακό κλίμα',
       metaDescription:
         'The Piano Guardian: €230/έτος. Παρακολούθηση υγρασίας και θερμοκρασίας για το πιάνο σας στην Κύπρο, με ένα πλήρες κούρδισμα κάθε χρόνο.',
@@ -451,6 +487,8 @@ export const services: Service[] = [
     image: 'handmade-piano-cover.jpg',
     en: {
       name: 'Handmade Piano Covers',
+      metaTitle: 'Made-to-Measure Piano Covers in Cyprus',
+      imageAlt: 'Quilted navy made-to-measure cover fitted over a grand piano',
       tagline: 'Made to your instrument’s exact measurements',
       metaDescription:
         'Handmade piano covers in Cyprus from €200. Quilted, padded covers made to the exact measurements of your upright or grand piano.',
@@ -471,6 +509,8 @@ export const services: Service[] = [
     },
     el: {
       name: 'Χειροποίητα Καλύμματα Πιάνου',
+      metaTitle: 'Κάλυμμα Πιάνου κατά Παραγγελία, Κύπρος',
+      imageAlt: 'Καπιτονέ μπλε κάλυμμα κατά παραγγελία πάνω σε πιάνο με ουρά',
       tagline: 'Ραμμένα στις ακριβείς διαστάσεις του οργάνου σας',
       metaDescription:
         'Χειροποίητα καλύμματα πιάνου στην Κύπρο από €200. Καπιτονέ, επενδυμένα καλύμματα στις ακριβείς διαστάσεις του δικού σας πιάνου.',

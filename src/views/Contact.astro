@@ -3,6 +3,8 @@ import Base from '~/layouts/Base.astro';
 import PageHeader from '~/components/PageHeader.astro';
 import EnquiryForm from '~/components/EnquiryForm.astro';
 import Icon from '~/components/Icon.astro';
+import { Image } from 'astro:assets';
+import portrait from '~/assets/images/kleanthis-portrait.jpg';
 import { openingHoursRows } from '~/lib/hours';
 import { site, serviceAreas } from '~/data/site';
 import { alternateUrls, path, useTranslations, type Locale } from '~/i18n/ui';
@@ -12,6 +14,7 @@ interface Props { locale: Locale; variant?: 'contact' | 'booking' }
 const { locale, variant = 'contact' } = Astro.props;
 const t = useTranslations(locale);
 const hours = openingHoursRows(locale);
+const technicianName = locale === 'el' ? site.technician.nameEl : site.technician.name;
 
 const routeKey = variant === 'booking' ? 'book' : 'contact';
 const alternates = alternateUrls(routeKey);
@@ -38,14 +41,14 @@ const meta = {
   },
   booking: {
     en: {
-      title: 'Book a Piano Tuning in Cyprus — Piano Tunings Cy',
+      title: 'Book a Tuning, Repair or Move | Piano Tunings Cy',
       description:
         'Book a piano tuning, repair, evaluation, move or grand piano rental anywhere in Cyprus. Tell us about your piano and get the next available appointments.',
     },
     el: {
-      title: 'Κλείστε Κούρδισμα Πιάνου στην Κύπρο — Piano Tunings Cy',
+      title: 'Κλείστε Ραντεβού για το Πιάνο σας | Piano Tunings Cy',
       description:
-        'Κλείστε κούρδισμα, επισκευή, εκτίμηση, μεταφορά ή ενοικίαση πιάνου οπουδήποτε στην Κύπρο. Πείτε μας για το πιάνο σας και δείτε τα επόμενα διαθέσιμα ραντεβού.',
+        'Κλείστε κούρδισμα, επισκευή, εκτίμηση, μεταφορά ή ενοικίαση πιάνου σε όλη την Κύπρο. Πείτε μας για το πιάνο σας και δείτε τα επόμενα ραντεβού.',
     },
   },
 }[variant][locale];
@@ -118,6 +121,21 @@ const contactMethods = [
         <!-- Direct contact -->
         <div class="lg:sticky lg:top-32 lg:self-start">
           <div class="rounded-sm border border-ebony-200 bg-white p-6 sm:p-8">
+            <!-- Who answers: a one-person business, so show the person. -->
+            <div class="mb-7 flex items-center gap-4 border-b border-ebony-100 pb-6">
+              <Image
+                src={portrait}
+                alt={technicianName}
+                widths={[64, 128]}
+                sizes="64px"
+                loading="lazy"
+                class="h-16 w-16 shrink-0 rounded-full object-cover ring-1 ring-ebony-200"
+              />
+              <div class="min-w-0">
+                <p class="font-display text-[1.2rem] font-medium leading-tight text-ebony-950">{technicianName}</p>
+                <p class="mt-1 text-[0.875rem] text-ebony-500">{site.technician.jobTitle[locale]} · {site.name}</p>
+              </div>
+            </div>
             <h2 class="text-[1.4rem] text-ebony-950">{t('contact.fastestTitle')}</h2>
             <p class="prose-body mt-3 !text-[0.95rem]">{t('contact.fastestLead')}</p>
 
