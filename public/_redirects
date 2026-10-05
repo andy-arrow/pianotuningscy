@@ -4,6 +4,11 @@
 #
 # Format: Netlify (_redirects). Cloudflare Pages reads this file too.
 # For Vercel, the same map is mirrored in vercel.json.
+#
+# Netlify sends http:// and www. to https://pianotuningscy.com before any rule
+# here runs, so an old www link takes 2 hops (3 from http://www.) — well within
+# what search engines follow. Rules for those hosts were tried in October 2026
+# and never match; don't add them again.
 
 # The Netlify address serves the same site; send it to the real domain so
 # search engines never see a duplicate. (Deploy previews use other hostnames.)
