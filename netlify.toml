@@ -5,6 +5,15 @@
   command = "npm run build"
   publish = "dist"
 
+# Enquiry emails: netlify/functions/submission-created.mjs runs for every
+# verified form submission and emails it to info@ through one.com. It stays
+# dormant until ONECOM_SMTP_PASSWORD is added in the Netlify UI (Project
+# configuration → Environment variables). Never put it in this file: the repo
+# is public, and variables set here don't reach functions anyway.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 [build.environment]
   NODE_VERSION = "24"
   # Build in Cyprus time (EEST/EET), like everything else on the site.

@@ -13,6 +13,27 @@ npm run preview  # serve the built site
 npm run check    # type + template diagnostics
 ```
 
+## Enquiry emails
+
+Every enquiry is stored in Netlify (Forms → `enquiry-booking` / `enquiry-contact`)
+and reaches `info@pianotuningscy.com` by up to two routes:
+
+1. **Netlify's own notification**, from `formresponses@netlify.com`. Set up on
+   24 Sept 2026, but those emails never reached the inbox.
+2. **`netlify/functions/submission-created.mjs`**, which sends each verified
+   enquiry from the site's own one.com mailbox, through `send.one.com`, to
+   `info@`. It is **dormant** until `ONECOM_SMTP_PASSWORD` is added in Netlify →
+   Project configuration → Environment variables (optionally `ONECOM_SMTP_USER`
+   if a mailbox other than `info@` sends). Never put either in the repo.
+
+- If the mailbox password changes, update the Netlify variable the same day and
+  trigger a deploy.
+- Deploy only by pushing to `main`: a drag-and-drop deploy of `dist/` drops the
+  function.
+- Check offline (sends nothing): `npm run check:enquiry-email`.
+- Once a month, compare Netlify Forms (Verified **and** Spam) with the emails
+  received.
+
 ---
 
 ## Before it goes live
