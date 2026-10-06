@@ -194,5 +194,9 @@ echo "$PAGE" | grep -qE '<h[1-6][^>]*id="ptc-chat-title"' && bad "chat panel tit
 echo "$PAGE" | grep -q '"FAQPage"' && bad "home FAQ markup" "repeated (belongs on /faq/ only)" || ok "home FAQ markup" "absent (kept on /faq/ only)"
 curl -s --max-time 25 "$CANON/faq/" | grep -q '"FAQPage"' && ok "/faq/ FAQ markup" "present" || bad "/faq/ FAQ markup" "missing"
 
+hdr "14. Enquiry email function"
+c=$(curl -s -o /dev/null -w '%{http_code}' --max-time 25 -X POST --data '{"payload":{"id":"probe"}}' "$CANON/.netlify/functions/submission-created")
+[ "$c" = "403" ] && ok "submission-created" "deployed; outside calls refused (403)" || bad "submission-created" "HTTP $c (want 403: deployed and signed-events only)"
+
 printf "\n\033[1m%d passed, %d failed\033[0m\n" "$pass" "$fail"
 exit $([ "$fail" -eq 0 ] && echo 0 || echo 1)
