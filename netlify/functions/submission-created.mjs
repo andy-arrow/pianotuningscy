@@ -1,7 +1,8 @@
 /**
- * Emails every verified enquiry to info@pianotuningscy.com through one.com's
- * own mail server, so it doesn't depend on Netlify's notification email
- * (formresponses@netlify.com), which never reached that inbox.
+ * Emails every verified enquiry to info@pianotuningscy.com (and to any
+ * address in ENQUIRY_ALSO_TO, e.g. Kleanthis's Gmail) through one.com's own
+ * mail server, so it doesn't depend on Netlify's notification email
+ * (formresponses@netlify.com), which never reached info@.
  *
  * Netlify runs this by its file name for each submission it verifies (spam
  * never triggers it), and signs the event so it can't be called from outside.
@@ -10,11 +11,12 @@
  * is public):
  *   ONECOM_SMTP_PASSWORD  the password of the mailbox that sends
  *   ONECOM_SMTP_USER      optional; that mailbox, default info@pianotuningscy.com
+ *   ENQUIRY_ALSO_TO       optional; extra recipients, comma-separated
  * Without the password it logs one line and returns. Netlify's own email
  * notification is separate and keeps running either way.
  */
 import { createTransport } from 'nodemailer';
-import { INBOX, buildEnquiryEmail, fallbackEmail, deliver } from '../lib/enquiry-mail.mjs';
+import { buildEnquiryEmail, fallbackEmail, deliver, recipients } from '../lib/enquiry-mail.mjs';
 
 // Best effort only: each warm instance counts its own sends, and Netlify may
 // run several at once. It slows a bot that got past the spam filter; Netlify
@@ -48,20 +50,26 @@ export default async (req) => {
     return new Response('rate limited', { status: 429 });
   }
 
-  const user = process.env.ONECOM_SMTP_USER || INBOX;
+  const to = recipients(process.env.ENQUIRY_ALSO_TO);
+  const user = process.env.ONECOM_SMTP_USER || to[0];
   let message;
   try {
-    message = buildEnquiryEmail(payload, { from: user });
+    message = buildEnquiryEmail(payload, { from: user, to });
   } catch (err) {
     console.error(`enquiry-mail: formatting failed for ${id} (${err?.name}); sending the plain version`);
-    message = fallbackEmail(payload, { from: user });
+    message = fallbackEmail(payload, { from: user, to });
   }
 
   const result = await deliver(message, { createTransport, user, pass });
   // Codes only: never the message, which would copy customer data into logs.
   if (result.ok) {
     sent.push(Date.now());
-    console.log(`enquiry-mail: submission ${id} sent to ${INBOX} via port ${result.port}`);
+    const line = `enquiry-mail: submission ${id} sent via port ${result.port}: ${result.accepted}/${to.length} addresses accepted`;
+    if (result.rejected) {
+      console.error(`${line}; ${result.rejected} refused${result.inboxRefused ? ', including info@' : ''}`);
+      return new Response('partly sent', { status: result.inboxRefused ? 502 : 200 });
+    }
+    console.log(line);
     return new Response('sent');
   }
   const outcome = result.code === 'EBUDGET' ? 'timed out (may still arrive)' : 'NOT sent';

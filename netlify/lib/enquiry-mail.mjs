@@ -44,6 +44,19 @@ const esc = (s) =>
  */
 const EMAIL_RE = /^[^\s@<>()",;:\\[\]?&=%/]+@(?:[\p{L}\p{N}-]+\.)+\p{L}{2,}$/u;
 
+/**
+ * INBOX plus any extra addresses from a comma-separated setting (the
+ * ENQUIRY_ALSO_TO environment variable; kept out of this public repo).
+ * Invalid entries are skipped, duplicates removed, at most three extras.
+ */
+export function recipients(extra = '') {
+  const also = String(extra)
+    .split(/[,;\s]+/)
+    .map((a) => a.trim())
+    .filter((a) => EMAIL_RE.test(a));
+  return [...new Set([INBOX, ...also.slice(0, 3)].map((a) => a.toLowerCase()))];
+}
+
 /** +357 99 123456 / 99123456 / 0035799123456 → 35799123456, for wa.me links. */
 function waDigits(phone) {
   let d = phone.replace(/[^\d+]/g, '');
@@ -68,15 +81,20 @@ function validDate(v, now) {
   return Number.isNaN(d.getTime()) ? now : d;
 }
 
+/** First address visible in To; the rest hidden in Bcc. */
+const addressing = (to) => ({ to: to[0], ...(to.length > 1 ? { bcc: to.slice(1) } : {}) });
+
 const messageId = (p, when) =>
   `<enquiry-${String(p.id || when.getTime()).replace(/[^\w.-]/g, '')}@pianotuningscy.com>`;
 
 /**
  * One verified Netlify Forms submission → nodemailer message options.
  * `from` must be the mailbox that logs in to one.com (one.com rejects any
- * other sender); the recipient is always INBOX.
+ * other sender); `to` is recipients(), which always starts with INBOX. Only
+ * INBOX is visible: the others go as Bcc, so a Reply All from info@ never
+ * shows a customer Kleanthis's personal address.
  */
-export function buildEnquiryEmail(p, { from, now = new Date() }) {
+export function buildEnquiryEmail(p, { from, to = [INBOX], now = new Date() }) {
   const d = p.data || {};
   const isBooking = p.form_name === 'enquiry-booking';
   const name = oneLine(d.name) || '—';
@@ -140,7 +158,7 @@ export function buildEnquiryEmail(p, { from, now = new Date() }) {
 
   return {
     from: { name: 'Ιστοσελίδα Piano Tunings Cy', address: from },
-    to: INBOX,
+    ...addressing(to),
     ...(validEmail ? { replyTo: { name: name === '—' ? '' : name, address: email } } : {}),
     subject,
     text,
@@ -156,14 +174,14 @@ export function buildEnquiryEmail(p, { from, now = new Date() }) {
  * Used only if buildEnquiryEmail() throws: a formatting bug must never cost
  * an enquiry. Plain text, every field as sent, nothing clever.
  */
-export function fallbackEmail(p, { from, now = new Date() }) {
+export function fallbackEmail(p, { from, to = [INBOX], now = new Date() }) {
   const d = p?.data || {};
   const lines = Object.keys(d)
     .filter((k) => !['ip', 'user_agent', 'referrer', 'company-website'].includes(k))
     .map((k) => `${k}: ${defang(clean(typeof d[k] === 'string' ? d[k] : JSON.stringify(d[k]), 3000))}`);
   return {
     from: { name: 'Ιστοσελίδα Piano Tunings Cy', address: from },
-    to: INBOX,
+    ...addressing(to),
     subject: 'Νέο μήνυμα από την ιστοσελίδα / New website enquiry',
     text: `${lines.join('\n')}\n\nΓράφτηκε από επισκέπτη της ιστοσελίδας — μην ανοίγετε συνδέσμους.\n`,
     messageId: messageId(p || {}, now),
@@ -191,7 +209,8 @@ const isFinal = (err) =>
  * so the race timer is only a backstop, and when it does fire the outcome is
  * reported as unknown rather than failed. connectionTimeout applies per
  * address (send.one.com has several), hence the short value.
- * Returns { ok, port } or { ok: false, code, ... }. Never throws, and never
+ * Returns { ok, port, accepted, rejected, inboxRefused } or
+ * { ok: false, code, ... } (counts only, no addresses). Never throws, and never
  * puts the message or the password in its result.
  */
 export async function deliver(message, { createTransport, user, pass, budgetMs = 25000 }) {
@@ -216,13 +235,20 @@ export async function deliver(message, { createTransport, user, pass, budgetMs =
     });
     let timer;
     try {
-      await Promise.race([
+      const info = await Promise.race([
         transport.sendMail(message),
         new Promise((_, reject) => {
           timer = setTimeout(() => reject(Object.assign(new Error('budget'), { code: 'EBUDGET' })), slot);
         }),
       ]);
-      return { ok: true, port: route.port };
+      // The server can refuse one address and take the others; count both.
+      return {
+        ok: true,
+        port: route.port,
+        accepted: info?.accepted?.length ?? 0,
+        rejected: info?.rejected?.length ?? 0,
+        inboxRefused: (info?.rejected || []).some((a) => String(a).toLowerCase() === INBOX),
+      };
     } catch (err) {
       last = { ok: false, port: route.port, code: err?.code || 'ERR', responseCode: err?.responseCode, command: err?.command };
       // The session may still finish and deliver; a second route could duplicate it.

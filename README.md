@@ -16,15 +16,19 @@ npm run check    # type + template diagnostics
 ## Enquiry emails
 
 Every enquiry is stored in Netlify (Forms → `enquiry-booking` / `enquiry-contact`)
-and reaches `info@pianotuningscy.com` by up to two routes:
+and is emailed to `info@pianotuningscy.com` and Kleanthis's Gmail by up to two
+routes:
 
-1. **Netlify's own notification**, from `formresponses@netlify.com`. Set up on
-   24 Sept 2026, but those emails never reached the inbox.
+1. **Netlify's own notifications**, from `formresponses@netlify.com`: one to
+   `info@` (since 24 Sept 2026, though it never reached that inbox) and one to
+   Gmail (since 7 Oct 2026).
 2. **`netlify/functions/submission-created.mjs`**, which sends each verified
    enquiry from the site's own one.com mailbox, through `send.one.com`, to
    `info@`. It is **dormant** until `ONECOM_SMTP_PASSWORD` is added in Netlify →
    Project configuration → Environment variables (optionally `ONECOM_SMTP_USER`
-   if a mailbox other than `info@` sends). Never put either in the repo.
+   if a mailbox other than `info@` sends). It also sends to the addresses in
+   `ENQUIRY_ALSO_TO` (set to Kleanthis's Gmail in Netlify, not in this public
+   repo). Never put any of these in the repo.
 
 - If the mailbox password changes, update the Netlify variable the same day and
   trigger a deploy.

@@ -22,7 +22,7 @@ export interface LegalDoc {
 
 export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
   privacy: {
-    revised: '2026-09-24',
+    revised: '2026-10-07',
     title: { en: 'Privacy policy', el: 'Πολιτική απορρήτου' },
     description: {
       en: 'How Piano Tunings Cy collects, uses, stores and protects your personal data under the GDPR — what we hold, why, for how long, and your rights.',
@@ -70,7 +70,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
         {
           heading: 'Who else sees your data',
           paras: [
-            'Your enquiry is received through our website host\'s form handling and our email provider, and is read only by Kleanthis Christoforou. If you use the chat assistant, your messages are processed by Cloudflare, Inc., as described above. These providers act as data processors on our behalf and are bound to process the data only on our instructions.',
+            'Your enquiry is received through our website host\'s form handling and emailed to our business inbox (our email provider) and to Kleanthis\'s Gmail inbox, and is read only by Kleanthis Christoforou. If you use the chat assistant, your messages are processed by Cloudflare, Inc., as described above. These providers act as data processors on our behalf and are bound to process the data only on our instructions. The copy sent to Kleanthis\'s personal Gmail account is held by Google Ireland Limited under Google\'s own terms and privacy policy (policies.google.com/privacy).',
             'We do not transfer your personal data outside the European Economic Area, except where a provider listed above does so under an adequacy decision or standard contractual clauses.',
           ],
         },
@@ -130,7 +130,7 @@ export const legalDocs: Record<'privacy' | 'cookies' | 'terms', LegalDoc> = {
         {
           heading: 'Ποιος άλλος βλέπει τα δεδομένα σας',
           paras: [
-            'Το αίτημά σας λαμβάνεται μέσω της υπηρεσίας φορμών του παρόχου φιλοξενίας και του παρόχου email μας, και το διαβάζει μόνο ο Κλεάνθης Χριστοφόρου. Αν χρησιμοποιήσετε τον ψηφιακό βοηθό, τα μηνύματά σας επεξεργάζεται η Cloudflare, Inc., όπως περιγράφεται παραπάνω. Οι πάροχοι αυτοί ενεργούν ως εκτελούντες την επεξεργασία για λογαριασμό μας και δεσμεύονται να επεξεργάζονται τα δεδομένα μόνο κατόπιν εντολής μας.',
+            'Το αίτημά σας λαμβάνεται μέσω της υπηρεσίας φορμών του παρόχου φιλοξενίας και αποστέλλεται με email στο επαγγελματικό μας γραμματοκιβώτιο (πάροχος email μας) και στο Gmail του Κλεάνθη, και το διαβάζει μόνο ο Κλεάνθης Χριστοφόρου. Αν χρησιμοποιήσετε τον ψηφιακό βοηθό, τα μηνύματά σας επεξεργάζεται η Cloudflare, Inc., όπως περιγράφεται παραπάνω. Οι πάροχοι αυτοί ενεργούν ως εκτελούντες την επεξεργασία για λογαριασμό μας και δεσμεύονται να επεξεργάζονται τα δεδομένα μόνο κατόπιν εντολής μας. Το αντίγραφο που αποστέλλεται στον προσωπικό λογαριασμό Gmail του Κλεάνθη φυλάσσεται από την Google Ireland Limited βάσει των δικών της όρων και της πολιτικής απορρήτου της (policies.google.com/privacy).',
             'Δεν διαβιβάζουμε τα προσωπικά σας δεδομένα εκτός του Ευρωπαϊκού Οικονομικού Χώρου, εκτός εάν κάποιος από τους παραπάνω παρόχους το πράττει βάσει απόφασης επάρκειας ή τυποποιημένων συμβατικών ρητρών.',
           ],
         },

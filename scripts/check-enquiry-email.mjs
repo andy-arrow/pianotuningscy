@@ -9,7 +9,8 @@
 import assert from 'node:assert/strict';
 import net from 'node:net';
 import nodemailer from 'nodemailer';
-import { INBOX, buildEnquiryEmail, fallbackEmail, deliver } from '../netlify/lib/enquiry-mail.mjs';
+import MailComposer from 'nodemailer/lib/mail-composer/index.js';
+import { INBOX, buildEnquiryEmail, fallbackEmail, deliver, recipients } from '../netlify/lib/enquiry-mail.mjs';
 
 let passed = 0;
 async function test(name, fn) {
@@ -57,6 +58,7 @@ const contactNoEmail = {
 await test('Greek booking: encoded subject, Reply-To, WhatsApp and phone links, no tracking fields', async () => {
   const msg = buildEnquiryEmail(booking, { from: INBOX });
   assert.equal(msg.to, INBOX);
+  assert.equal(msg.bcc, undefined);
   assert.equal(msg.subject, 'Νέα κράτηση: Μαρία Παπαδοπούλου – Κούρδισμα Πιάνου – Λεμεσός');
   assert.equal(msg.replyTo.address, 'maria@example.com');
   assert.match(msg.html, /href="https:\/\/wa\.me\/35799123456"/);
@@ -68,6 +70,25 @@ await test('Greek booking: encoded subject, Reply-To, WhatsApp and phone links, 
   assert.match(head, /^Reply-To: /m);
   assert.match(head, /^Message-ID: <enquiry-6ab4c28df680c40008ac0f99@pianotuningscy\.com>$/m);
   assert.doesNotMatch(raw, /203\.0\.113\.9|Mozilla\/5\.0 test|example\.org/);
+});
+
+await test('recipients: info@ always first, valid extras added once, junk ignored', async () => {
+  assert.deepEqual(recipients(), [INBOX]);
+  assert.deepEqual(recipients(''), [INBOX]);
+  assert.deepEqual(recipients('Kleanthis@Gmail.com'), [INBOX, 'kleanthis@gmail.com']);
+  assert.deepEqual(recipients('a@b.cy, info@pianotuningscy.com; not-an-email, x@y.com?bcc=z@w.com'), [INBOX, 'a@b.cy']);
+  assert.equal(recipients('a@a.com,b@b.com,c@c.com,d@d.com').length, 4, 'at most three extras');
+  const msg = buildEnquiryEmail(booking, { from: INBOX, to: recipients('kleanthis@example.com') });
+  assert.equal(msg.to, INBOX);
+  assert.deepEqual(msg.bcc, ['kleanthis@example.com']);
+  // The envelope carries every address; the message built for SMTP (keepBcc
+  // false, as nodemailer's SMTP transport uses) shows only info@.
+  const node = new MailComposer(msg).compile();
+  assert.deepEqual(node.getEnvelope().to, [INBOX, 'kleanthis@example.com']);
+  const built = await new Promise((res, rej) => node.build((e, b) => (e ? rej(e) : res(b))));
+  const head = headersOf(built.toString('utf8').replace(/\r\n/g, '\n'));
+  assert.match(head, /^To: info@pianotuningscy\.com$/m);
+  assert.doesNotMatch(head, /kleanthis@example\.com/);
 });
 
 await test('no email given: no Reply-To, tells Kleanthis to call', async () => {
@@ -157,10 +178,17 @@ function fakeTransports(behaviours) {
 const fail = (code, responseCode) => () => Promise.reject(Object.assign(new Error(code), { code, responseCode }));
 const msg = buildEnquiryEmail(booking, { from: INBOX });
 
-await test('465 first; on a timeout, one retry on 587 with STARTTLS required', async () => {
-  const { made, createTransport } = fakeTransports([fail('ETIMEDOUT'), () => Promise.resolve({})]);
+await test('a refused address is counted, not hidden', async () => {
+  const { createTransport } = fakeTransports([() => Promise.resolve({ accepted: ['k@example.com'], rejected: [INBOX] })]);
   const r = await deliver(msg, { createTransport, user: INBOX, pass: 'x' });
-  assert.deepEqual(r, { ok: true, port: 587 });
+  assert.deepEqual(r, { ok: true, port: 465, accepted: 1, rejected: 1, inboxRefused: true });
+  assert.doesNotMatch(JSON.stringify(r), /@/, 'counts only, no addresses');
+});
+
+await test('465 first; on a timeout, one retry on 587 with STARTTLS required', async () => {
+  const { made, createTransport } = fakeTransports([fail('ETIMEDOUT'), () => Promise.resolve({ accepted: [INBOX], rejected: [] })]);
+  const r = await deliver(msg, { createTransport, user: INBOX, pass: 'x' });
+  assert.deepEqual(r, { ok: true, port: 587, accepted: 1, rejected: 0, inboxRefused: false });
   assert.equal(made.length, 2);
   assert.equal(made[0].opts.port, 465);
   assert.equal(made[0].opts.secure, true);
